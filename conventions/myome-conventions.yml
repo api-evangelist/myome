@@ -1,0 +1,130 @@
+generated: '2026-08-26'
+method: derived
+source: 'openapi/myome-openapi.json (info.description "API Conventions" section, components.parameters,
+  components.responses) plus live probes of api.myome.com on 2026-08-26.'
+auth:
+  style: bearer-jwt
+  header: 'Authorization: Bearer <token>'
+  issuer: auth.myome.com (Keycloak)
+  detail: 'All endpoints require a JWT issued by MyOme''s Keycloak using partner-specific credentials.
+    The token refreshes every hour. MyOme provides credentials to partners via secure email during
+    account creation. One operation — GET /consent — declares an empty security: [] array in the
+    contract, but the live gateway still rejects unauthenticated calls with a 400/401 before reaching
+    it, so the whole surface is effectively closed.'
+  see: authentication/myome-authentication.yml
+idempotency:
+  supported: false
+  header: null
+  scope: null
+  retention: null
+  detail: 'No idempotency key is declared anywhere in the contract, and the docs do not describe safe
+    retry semantics. This matters more here than on a typical API: POST /requisition and POST
+    /institutional/partner-requisition create clinical laboratory orders against a patient sample, and
+    a duplicated retry is a duplicated billable genomic test, not a duplicated row. There is no
+    documented way for a client to make that call safely retryable, and no reversal operation is
+    exposed to undo the duplicate. Recorded as an honest absence — no Idempotency pointer is emitted.'
+pagination:
+  style: page-number
+  params:
+  - {name: page, in: query, type: integer, minimum: 1, description: Page number}
+  - {name: per_page, in: query, type: integer, minimum: 1, description: Number of items per page}
+  response_fields: 'The list responses (e.g. RequisitionListResultsResponse) carry the result array;
+    no cursor, no Link header, and no total-count header is declared.'
+  cursor: false
+sorting:
+  supported: true
+  params:
+  - {name: sort_field, in: query, description: 'Field used to sort results. On GET /requisition the
+      enumerated values are clinician_id, clinician_name, external_mrn, patient_id, patient_name and
+      related requisition fields.'}
+  - {name: sort_order, in: query, enum: [ascending, descending], description: Order in which results are sorted}
+filtering:
+  supported: true
+  params: [clinician_id, clinician_name, external_mrn, status, submitted_at, patient_id, patient_name, requisition_id]
+field_expansion:
+  supported: false
+  detail: No expand / include / fields sparse-fieldset mechanism is declared.
+metadata:
+  supported: false
+  detail: No free-form customer metadata bag is exposed on any resource; identity is carried by the
+    typed identifier schemes below.
+request_id_tracing:
+  supported: false
+  detail: 'No request-id or correlation-id header is declared in the contract or observed on live
+    responses. Observed response headers on api.myome.com are limited to server (envoy),
+    x-frame-options, content-security-policy, x-content-type-options, referrer-policy,
+    strict-transport-security and x-envoy-upstream-service-time. Clients have no provider-issued
+    handle to quote in a support ticket.'
+versioning:
+  in_path: true
+  prefix: /0/
+  see: lifecycle/myome-lifecycle.yml
+error_envelope:
+  contract: 'application/json, {title, detail, code?, errors?, extra?}'
+  runtime: 'application/problem+json, {type, title, detail, status} (RFC 9457)'
+  see: errors/myome-problem-types.yml
+rate_limit_signaling:
+  headers_declared: []
+  detail: 'No X-RateLimit-*, RateLimit-* or Retry-After header is declared in the contract or observed
+    on live responses, and no 429 response is declared on any operation.'
+  see: rate-limits/myome-rate-limits.yml
+identifier_conventions:
+  detail: 'Every first-class object carries a typed, prefixed, regex-constrained string identifier.
+    An environment infix (e.g. -dev-) is permitted inside the pattern, so identifiers are not portable
+    across environments.'
+  prefixes:
+  - {prefix: PR, entity: Product, pattern: '^PR-?\d+$'}
+  - {prefix: RQ, entity: Requisition, pattern: '^RQ-?([a-z]{3,5}-?)?\d+$'}
+  - {prefix: OR, entity: Order, pattern: '^OR-?([a-z]{3,5}-?)?\d+$'}
+  - {prefix: IN, entity: Individual (patient), pattern: '^IN-?([a-z]{3,5}-?)?\d+$'}
+  - {prefix: CN, entity: Clinician, pattern: '^CN-?([a-z]{3,5}-?)?\d+$'}
+  - {prefix: CL, entity: Clinic, pattern: '^CL-?([a-z]{3,5}-?)?\d+$'}
+  - {prefix: ORG, entity: Organization, pattern: '^ORG?([a-z]{3,5}?)?\d+$'}
+  - {prefix: SM, entity: Sample, pattern: '^SM-?([a-z]{3,5}-?)?[_\d]+$'}
+  - {prefix: DR, entity: Draft requisition, pattern: '^DR([a-z]{3,5})?\d+$'}
+  - {prefix: DS, entity: Data set, pattern: '^DS-?([a-z]{3,5}-?)?\d+$'}
+dry_run_mode:
+  supported: false
+  detail: 'No dry-run, preview or validate-only mode is exposed on any write operation. The nearest
+    published rehearsal surface is the separate external sandbox instance at https://api.sbx.myome.com/0/
+    — a different environment, not a preview flag. See sandbox/myome-sandbox.yml.'
+reversibility:
+  grade: none
+  applicable: true
+  detail: 'MyOme''s publicly documented surface has three write operations and exposes no reversal
+    operation for any of them. This is recorded as a measured gap, not as `na`: the API is not
+    read-only.'
+  write_surfaces:
+  - operation: POST /requisition
+    operationId: myome.api.endpoints.requisition.requisition_post
+    consequence: 'Creates a clinical laboratory requisition and one billable Order per requested
+      Product against a patient sample.'
+    reversal_operation: null
+    window: null
+    note: 'No cancel, void or delete operation for a requisition or an order appears in the published
+      contract. CANCELED is a value of ExternalOrderStatus that MyOme sets (with a status_reason such
+      as SAMPLE_NOT_RECEIVED) — it is an outcome the client observes, not an action the client can
+      take. The contract does list a path /institutional/requisition/{rq_identifier}/redraw and a
+      /provider/requisition/{requisition_id}/downgrade, but both are among the 55 paths whose
+      operations are withheld from the anonymous document, so neither their verbs nor their semantics
+      can be read.'
+  - operation: POST /institutional/partner-requisition
+    operationId: myome.api.endpoints.institutional.requisition.partner_requisition_post
+    consequence: Creates a partner-scoped requisition.
+    reversal_operation: null
+    window: null
+  - operation: POST /institutional/campaign/{campaign_code}/individual
+    operationId: myome.api.endpoints.institutional.campaign.individual.individual_post
+    consequence: Enrols an individual into an institutional campaign.
+    reversal_operation: null
+    window: null
+  no_stated_window: true
+  warning: 'NO REVERSAL WINDOW IS STATED ANYWHERE IN MYOME''S PUBLIC DOCUMENTATION, and none has been
+    inferred. An agent must treat every MyOme write as irreversible through the API and escalate to a
+    human via support@myome.com.'
+cross_links:
+  errors: errors/myome-problem-types.yml
+  lifecycle: lifecycle/myome-lifecycle.yml
+  authentication: authentication/myome-authentication.yml
+  rate_limits: rate-limits/myome-rate-limits.yml
+  sandbox: sandbox/myome-sandbox.yml

@@ -1,0 +1,124 @@
+generated: '2026-08-26'
+method: derived
+source: 'openapi/myome-openapi.json — components.schemas $ref graph and typed identifier fields,
+  plus the Terminology section of info.description.'
+id_prefixes:
+  PR: Product
+  RQ: Requisition
+  OR: Order
+  IN: Individual
+  CN: Clinician
+  CL: Clinic
+  ORG: Organization
+  SM: Sample
+  DR: DraftRequisition
+  DS: DataSet
+entities:
+- name: Product
+  id_field: product_id
+  id_prefix: PR
+  description: A specific assay or interpretation service that can be ordered.
+  key_fields: [product_id, name, description]
+- name: Requisition
+  id_field: requisition_id
+  id_prefix: RQ
+  description: A request for one or more Products against a single sample. The unit a partner submits.
+  key_fields: [requisition_id, subject, clinicians, orders, consents_granted, billing, samples]
+- name: Order
+  id_field: order_id
+  id_prefix: OR
+  description: One Order is created per Product requested in a Requisition. Carries status and results.
+  key_fields: [order_id, product_id, product_name, report_type, external_status, status_reason, status_message]
+- name: Subject
+  id_field: individual_id
+  id_prefix: IN
+  description: The patient the sample belongs to. Name, demographics, contact info, address.
+  key_fields: [name, demographics, contact_info, individual_id]
+- name: Clinician
+  id_field: clinician_id
+  id_prefix: CN
+  description: Ordering or reviewing provider. Carries NPI and licensure status.
+  key_fields: [clinician_id, name, npi, contact_info, provider_role, license_status]
+- name: Clinic
+  id_field: clinic_id
+  id_prefix: CL
+  description: Physical practice location a clinician is affiliated with; carries fax verification state.
+  key_fields: [clinic_id, name, address, fax_verification_status]
+- name: Institution
+  id_field: organization_id
+  id_prefix: ORG
+  description: Institutional/partner account that owns campaigns, providers and requisitions.
+- name: Sample
+  id_field: sample_id
+  id_prefix: SM
+  description: The physical specimen. sample_type distinguishes collection method.
+  key_fields: [sample_id, sample_type]
+- name: DraftRequisition
+  id_field: draft_requisition_id
+  id_prefix: DR
+  description: A requisition in progress, before final submission.
+- name: Consent
+  id_field: consent_uri
+  description: A granted consent, keyed by a consent URI. ConsentType is one of CONTACT, IRB, RESEARCH, TESTING.
+- name: Report
+  description: 'End result of a successful Order. Exposed as a URI + mimetype + description; a
+    ClinicalSummaryLetter and a collated_report (cover page plus per-order report) also exist. An Order
+    typically has one Report, zero on failure, or several when amended/corrected.'
+- name: Campaign
+  id_field: campaign_code
+  description: An institutional enrolment program with eligibility rules and member individuals.
+- name: PaymentIntent
+  id_field: payment_intent_id
+  description: 'Stripe payment intent (schema StripePaymentIntentId) created for a requisition when the
+    payor is the patient.'
+- name: Billing
+  description: 'Polymorphic — BillingSelf, BillingInsurance (with Insurance + Relationship) or
+    BillingInstitutional. PayorType enumerates INSTITUTIONAL, INSURANCE, SELF.'
+relationships:
+- {from: Requisition, to: Order, type: has_many, via: orders}
+- {from: Requisition, to: Subject, type: has_one, via: subject}
+- {from: Requisition, to: Clinician, type: has_many, via: clinicians}
+- {from: Requisition, to: Consent, type: has_many, via: consents_granted}
+- {from: Requisition, to: Sample, type: has_many, via: samples}
+- {from: Requisition, to: Billing, type: has_one, via: billing}
+- {from: Requisition, to: PaymentIntent, type: has_one, via: payment_intent_id}
+- {from: Order, to: Product, type: belongs_to, via: product_id}
+- {from: Order, to: Report, type: has_many, via: report/collated_report URIs}
+- {from: Order, to: Requisition, type: belongs_to, via: requisition_id}
+- {from: Clinician, to: Clinic, type: has_many, via: clinics}
+- {from: Clinician, to: Institution, type: belongs_to, via: organization_id}
+- {from: Institution, to: Clinician, type: has_many, via: provider list endpoints}
+- {from: Campaign, to: Subject, type: has_many, via: CampaignIndividual}
+- {from: Campaign, to: Product, type: has_many, via: eligible_products}
+- {from: DraftRequisition, to: Requisition, type: has_one, via: promotion on submit}
+- {from: Subject, to: FamilyHistory, type: has_one, via: family_history}
+enumerations:
+  ExternalOrderStatus: [SUBMITTED, APPROVED, DENIED, AWAITING_SAMPLE, ANALYZING, REFERRAL_LAB_LD_REVIEW, CLINICIAN_REVIEW, COMPLETED, CANCELED, FAILED]
+  ExternalRequisitionStatus: [QUEUED, WAITING_FOR_SAMPLE, PROCESSING, SUCCEEDED, FAILED]
+  OrderStage: [QUEUED, WAITING_FOR_DATA, ANALYZING, REPORTING, COMPLETED]
+  RequisitionStage: [PENDING_APPROVAL, DENIED, SUBMITTED, PROCESSING, WAITING_FOR_REFERRING_LAB_FINALIZATION, COMPLETED]
+  ReportType: [BASELINE_RISK, MONOGENIC, NDD_CNA, RARE_DISEASE, PGX, PRS, FAMILY_VARIANT_TESTING, DATA_ONLY, CLINICAL_RISK_ONLY, CANCELED]
+  ConsentType: [CONTACT, IRB, RESEARCH, TESTING]
+  PayorType: [INSTITUTIONAL, INSURANCE, SELF]
+  PaymentStatus: [PENDING, CANCELED, SUCCEEDED, FREE]
+  ProviderRole: [ADMIN, DELEGATE, CLINICIAN]
+clinical_risk_inputs:
+  note: 'A large part of the schema surface is not an API data model at all but the clinical
+    questionnaire that feeds MyOme''s risk engines, declared as first-class schemas: a full
+    Tyrer-Cuzick breast-cancer input set (age_at_menarche, number_of_live_births, age_at_first_birth,
+    menopausal_status, history_of_atypical_hyperplasia, history_of_lcis, breast_density_value_birads,
+    polygenic_snp_score, ashkenazi_jewish, plus a TyrerCuzickFamilyHistory array), a coronary-artery-
+    disease input set (SmokingStatus, TotalCholesterol, HDLCholesterol, SystolicBloodPressure,
+    AntiHyperTensionMedicationUse, TriglycerideLevel), a type-2-diabetes set (FastingGlucoseLevel,
+    BodyMassIndex, WaistCircumference, FirstDegreeFamilyWithType2Diabetes) and a prostate-cancer set.
+    These are the integrated-PRS covariates, and they are the most distinctive thing in the contract.'
+  families: [tyrer_cuzick_inputs, coronary_artery_disease_inputs, type_2_diabetes_inputs, prostate_cancer_inputs]
+topline_findings: [ToplineFinding, RequisitionToplineFinding, MonogenicToplineFinding, PRSToplineFinding, PGxImpactToplineFinding, RareDiseaseToplineFinding]
+product_data_variants:
+  note: 'Per-product result payload shapes are versioned into the schema names themselves, which
+    couples a client to MyOme''s product catalog rather than to a stable result type.'
+  schemas: [ProductDataPR41003, ProductDataPR42009, ProductDataPR4001Empower, ProductDataPR41016, ProductDataPR42014, ProductDataPR41027, ProductDataPR42023, ProductDataPR41034, ProductDataPR42038, ProductDataRareDisease, ProductDataCNA, ProductDataPR11014]
+counts:
+  schemas: 197
+  entities: 15
+  relationships: 17

@@ -1,0 +1,69 @@
+generated: '2026-08-26'
+method: derived
+source: 'openapi/myome-openapi.json + mcp/myome-mcp.yml (derived candidate tools). There is no live
+  MCP or GraphQL surface to introspect.'
+surfaces:
+  openapi:
+    path: openapi/myome-openapi.json
+    url: https://api.myome.com/0/openapi.json
+    gated: partial
+    note: 'The document is served anonymously, but operation detail is present for only 8 of its 63
+      paths; the other 55 appear as path keys with their operations withheld.'
+  graphql:
+    endpoint: null
+    gated: null
+    note: 'No GraphQL surface. https://api.myome.com/graphql and https://api.myome.com/0/graphql both 404.'
+  mcp:
+    url: null
+    gated: null
+    note: 'No MCP server published. Tools below are candidates derived from REST, not a shipped tool set.'
+crosswalk:
+- {tool: list_products, category: catalog, rest: [myome.api.endpoints.product.product_get], binding: one-to-one, confidence: high}
+- {tool: list_consent_types, category: catalog, rest: [myome.api.endpoints.consent.consent_get], binding: one-to-one, confidence: high}
+- {tool: list_requisitions, category: requisitions, rest: [myome.api.endpoints.requisition.requisition_list], binding: one-to-one, confidence: high}
+- {tool: get_requisition, category: requisitions, rest: [myome.api.endpoints.requisition.requisition_get], binding: one-to-one, confidence: high}
+- {tool: get_order, category: orders, rest: [myome.api.endpoints.order.order_get], binding: one-to-one, confidence: high}
+- {tool: create_requisition, category: requisitions, rest: [myome.api.endpoints.requisition.requisition_post], binding: one-to-one, confidence: high}
+- {tool: create_partner_requisition, category: institutional, rest: [myome.api.endpoints.institutional.requisition.partner_requisition_post], binding: one-to-one, confidence: high}
+- {tool: add_campaign_individual, category: campaigns, rest: [myome.api.endpoints.institutional.campaign.individual.individual_post], binding: one-to-one, confidence: high}
+mcp_only: []
+rest_only: []
+withheld:
+  note: 'Fifty-five paths are published as keys with no operations, so they can be neither crosswalked
+    nor counted as REST-only. They are listed here because the path names themselves are the only
+    public evidence of these capabilities, and a partner with credentials sees operations we cannot.'
+  paths: ['/provider/forms/requisition', '/clinician/{clinician_id}', '/clinician', '/cures-release',
+    '/draft-requisition/{draft_requisition_id}', '/draft-requisition', '/financial-assistance',
+    '/genetic-counseling', '/institutional/campaign/{campaign_code}/clinic/{clinic_id}',
+    '/institutional/campaign/{campaign_code}/provider', '/institutional/campaign/{campaign_code}/requisition',
+    '/institutional/onboarding', '/institutional/order/{order_id}',
+    '/institutional/requisition/{rq_identifier}/change-ordering-provider',
+    '/institutional/requisition/{rq_identifier}/change-product', '/institutional/requisition',
+    '/institutional/requisition/{rq_identifier}/redraw', '/provider/onboarding',
+    '/provider/organization/{organization_id}/provider/{clinician_id}/delegate/{delegate_provider_id}',
+    '/provider/organization/{organization_id}/provider/{clinician_id}/delegate',
+    '/provider/organization/{organization_id}/provider',
+    '/provider/organization/{organization_id}/provider/{provider_id}',
+    '/patient-portal/campaign/eligibility', '/patient/{individual_id}', '/patient/{individual_id}/consent',
+    '/patient/{individual_id}/genetic-counseling', '/patient-portal/order/{order_id}',
+    '/patient-portal/share-history', '/patient-portal/profile', '/patient-portal/requisition',
+    '/patient-test', '/payment/{requisition_id}', '/payment-intent', '/profile',
+    '/provider/clinic/{clinic_id}', '/provider/clinic/{clinic_id}/fax/verify/confirm',
+    '/provider/clinic/{clinic_id}/fax/verify/request', '/provider/forms/get-requisition-form',
+    '/provider/individual/{individual_id}', '/provider/individual/{individual_id}/medication-response/guidelines',
+    '/provider/individual/{individual_id}/requisition', '/provider/requisition/{requisition_id}/collated-report',
+    '/provider/requisition/{requisition_id}/downgrade', '/provider/requisition',
+    '/provider/requisition/metrics', '/requisition/{requisition_id}/rerequisition/',
+    '/patient-portal/auth/signin/token', '/patient-portal/fvt/referral',
+    '/patient-portal/fvt/referral/{uuid}', '/patient-portal/fvt/referral/{uuid}/family-member',
+    '/patient-portal/ordering/eligibility', '/patient-portal/ordering/payment-intent',
+    '/patient-portal/ordering/submit', '/patient-portal/partnerships/{slug}',
+    '/patient-portal/results/download', '/provider-portal/user-profile']
+coverage:
+  mcp_tools: 8
+  rest_operations_visible: 8
+  rest_paths_total: 63
+  rest_paths_withheld: 55
+  mapped: 8
+  mcp_only: 0
+  rest_only: 0

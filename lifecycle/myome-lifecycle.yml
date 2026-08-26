@@ -1,0 +1,62 @@
+generated: '2026-08-26'
+method: derived
+source: 'openapi/myome-openapi.json (info.version, servers[], deprecated flags) plus site probes of
+  https://myome.com/changelog (404), https://myome.com/status (404) and https://status.myome.com/
+  (DNS does not resolve) on 2026-08-26.'
+versioning:
+  scheme: semver-in-info-plus-major-in-path
+  current_version: 2.51.0
+  path_prefix: /0/
+  detail: 'The API declares info.version 2.51.0 (semantic versioning) while every server URL pins the
+    major interface version in the path as /0/. The two move independently: the path version has not
+    advanced past 0, so 2.51.0 is a build/release identifier for the implementation rather than a
+    negotiable contract version. No Accept-header or query-parameter version negotiation is
+    documented, and no version-selection header appears anywhere in the specification.'
+  version_header: null
+environments:
+- name: Production
+  base_url: https://api.myome.com/0/
+  source: openapi servers[]
+- name: External sandbox
+  base_url: https://api.sbx.myome.com/0/
+  description: External sandbox instance for partner testing/development
+  source: openapi servers[]
+- name: Local development server
+  base_url: /0/
+  source: openapi servers[]
+deprecation:
+  policy_published: false
+  policy_url: null
+  sunset_header: unknown
+  deprecation_header: unknown
+  detail: 'No deprecation or sunset policy is published, and RFC 8594 Sunset / Deprecation response
+    headers are not declared anywhere in the specification (components.headers is empty). One
+    field-level deprecation is marked in the contract.'
+  deprecated_operations: []
+  deprecated_fields:
+  - schema_or_response: PaymentIntentPostResponse
+    field: client_secret
+    replacement: payment_intent_client_secret
+    note: 'Marked "deprecated": true in the OpenAPI document; the replacement field
+      payment_intent_client_secret is required in the same response.'
+status_page:
+  published: false
+  url: null
+  probes:
+  - {url: 'https://status.myome.com/', status: 0, note: 'DNS does not resolve'}
+  - {url: 'https://myome.com/status', status: 404}
+  - {url: 'https://api.myome.com/0/health', status: 404}
+  - {url: 'https://api.myome.com/0/version', status: 404}
+sla:
+  published: false
+  detail: 'No SLA, uptime commitment, or turnaround-time guarantee is published on the public site or
+    in the API contract. Turnaround is expressed to clients as order status transitions
+    (AWAITING_SAMPLE -> ANALYZING -> CLINICIAN_REVIEW -> COMPLETED), not as a time commitment.'
+changelog:
+  published: false
+  probes:
+  - {url: 'https://myome.com/changelog', status: 404}
+  detail: 'No dated API changelog is published. https://myome.com/about-us/news (200) is a corporate
+    press-release feed covering product launches and partnerships, not API release notes.'
+notes: 'No StatusPage or Deprecation pointer is emitted in apis.yml: MyOme publishes neither, and this
+  file records those as measured absences.'

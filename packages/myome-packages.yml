@@ -1,0 +1,15 @@
+generated: '2026-08-26'
+method: searched
+source: 'Registry searches 2026-08-26: registry.npmjs.org search "myome" (0 results), pypi.org/pypi/myome/json
+  and pypi.org/pypi/myome-api/json (404), rubygems.org/api/v1/gems/myome.json (404), plus a full listing
+  of github.com/myome (10 public repos, all bioinformatics tools/forks and publication code — CNVnator,
+  TIDDIT, deepnano-blitz, bcftools_score_plugin, amazon-ebs-autoscale — none an API client library).'
+package_count: 0
+official_count: 0
+packages: []
+notes: 'MyOme publishes no first-party client SDK in any public package registry. The MyOme API is a
+  partner-integration REST API reached directly over HTTPS with a bearer JWT; the published OpenAPI
+  document at https://api.myome.com/0/openapi.json is the only client-generation input MyOme offers.
+  The GitHub organization github.com/myome is real and active (created 2018-06-05, 10 public repos,
+  most recent push 2026-07-14) but it hosts genomics research tooling and publication code, not
+  API client libraries. Recorded as an honest zero, not an unchecked gap.'

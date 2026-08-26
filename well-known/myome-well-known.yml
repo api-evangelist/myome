@@ -1,0 +1,115 @@
+generated: '2026-08-26'
+method: probed
+source: 'Live HTTPS probes 2026-08-26 against every host named in apis.yml and the OpenAPI servers[] block.'
+hosts:
+- host: myome.com
+  documents:
+  - path: /.well-known/security.txt
+    status: 404
+    file: null
+  - path: /.well-known/openid-configuration
+    status: 404
+    file: null
+  - path: /.well-known/oauth-authorization-server
+    status: 404
+    file: null
+  - path: /.well-known/api-catalog
+    status: 404
+    file: null
+  - path: /.well-known/ai-plugin.json
+    status: 404
+    file: null
+  - path: /.well-known/agent-card.json
+    status: 404
+    file: null
+  - path: /.well-known/agent.json
+    status: 404
+    file: null
+- host: api.myome.com
+  documents:
+  - path: /.well-known/security.txt
+    status: 404
+    file: null
+  - path: /.well-known/openid-configuration
+    status: 404
+    file: null
+  - path: /.well-known/oauth-authorization-server
+    status: 404
+    file: null
+  - path: /.well-known/api-catalog
+    status: 404
+    file: null
+  - path: /.well-known/ai-plugin.json
+    status: 404
+    file: null
+  - path: /.well-known/agent-card.json
+    status: 404
+    file: null
+  - path: /.well-known/agent.json
+    status: 404
+    file: null
+- host: api.sbx.myome.com
+  documents:
+  - path: /.well-known/security.txt
+    status: 404
+    file: null
+  - path: /.well-known/openid-configuration
+    status: 404
+    file: null
+  - path: /.well-known/oauth-authorization-server
+    status: 404
+    file: null
+  - path: /.well-known/api-catalog
+    status: 404
+    file: null
+  - path: /.well-known/agent-card.json
+    status: 404
+    file: null
+  - path: /.well-known/agent.json
+    status: 404
+    file: null
+- host: auth.myome.com
+  documents:
+  - path: /.well-known/openid-configuration
+    status: 404
+    file: null
+  - path: /.well-known/oauth-authorization-server
+    status: 404
+    file: null
+  - path: /.well-known/security.txt
+    status: 404
+    file: null
+  - path: /.well-known/agent-card.json
+    status: 404
+    file: null
+- host: patients.myome.com
+  documents:
+  - path: /.well-known/security.txt
+    status: 200
+    file: null
+    note: 'NOT A DOCUMENT. The patient portal is a single-page app whose catch-all answers 200 with the
+      same text/html shell for every /.well-known/* path, including paths that cannot exist. Recorded
+      as a miss, not a hit.'
+  - path: /.well-known/agent-card.json
+    status: 200
+    file: null
+    note: 'NOT A DOCUMENT — SPA catch-all HTML shell, same as above.'
+- host: providers.myome.com
+  documents:
+  - path: /.well-known/security.txt
+    status: 200
+    file: null
+    note: 'NOT A DOCUMENT — SPA catch-all HTML shell.'
+  - path: /.well-known/agent-card.json
+    status: 200
+    file: null
+    note: 'NOT A DOCUMENT — SPA catch-all HTML shell.'
+summary:
+  documents_served: 0
+  hosts_probed: 6
+  notes: 'No /.well-known/ document of any kind is served by MyOme. auth.myome.com is a Keycloak
+    deployment (404 bodies carry the RESTEASY003210 marker) but no realm-scoped OIDC discovery
+    document is reachable anonymously — /realms/<realm>/.well-known/openid-configuration was probed
+    for ten candidate realm names and every one 404d, so the realm name is partner-private. No
+    WellKnown or SecurityTxt pointer is emitted: this file records an absence, and an absence must
+    not be advertised as a presence.'

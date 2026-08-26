@@ -1,0 +1,21 @@
+generated: '2026-08-26'
+method: searched
+source: 'https://myome.com/ (footer + navigation, HTTP 200), https://myome.com/our-tests (HTTP 200),
+  https://myome.com/access (HTTP 200), https://myome.com/who-we-serve/employers (HTTP 200),
+  https://myome.com/pricing (HTTP 404) — all fetched 2026-08-26.'
+plan_count: 0
+plans: []
+pricing_page_published: false
+notes: 'MyOme publishes no API plans and no list prices. There is no /pricing page (404) and no
+  pricing figure appears anywhere on the public site. This is a clinical laboratory rather than a
+  self-serve API: testing is ordered by a healthcare provider, an institutional partner, an employer
+  benefits program or a health system, and cost is settled through insurance, institutional billing,
+  or patient self-pay via a Stripe payment intent created inside the API (PayorType is one of
+  INSTITUTIONAL, INSURANCE, SELF). The API itself is not sold as a metered product — access is granted
+  with partner credentials issued by MyOme during account creation.
+  The one price-adjacent page MyOme does publish is https://myome.com/access, the MyOme Access
+  financial-assistance program, which reduces a patient''s out-of-pocket cost for diagnostic testing
+  on a household-income and family-size sliding scale (single-person income ceiling $95,760; family of
+  four $198,000) and explicitly states final cost varies with insurance coverage. That is a patient
+  affordability program, not an API plan, so it is recorded here as context rather than as a tier.
+  An honest zero: MyOme was checked and publishes nothing to record.'

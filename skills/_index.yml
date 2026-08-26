@@ -1,0 +1,28 @@
+generated: '2026-08-26'
+method: generated
+source: 'openapi/myome-openapi.json — every operationId referenced below was read from the published
+  contract; none was invented. MyOme publishes no skills/ or AGENTS.md of its own (searched 2026-08-26).'
+api: MyOme API
+skills:
+- name: myome-order-genomic-test
+  file: skills/myome-order-genomic-test.md
+  description: Submit a sequencing requisition and confirm the orders it created.
+  consequence: high
+  requires_human_confirmation: true
+  operations:
+  - myome.api.endpoints.product.product_get
+  - myome.api.endpoints.consent.consent_get
+  - myome.api.endpoints.requisition.requisition_post
+  - myome.api.endpoints.requisition.requisition_get
+- name: myome-track-order-and-retrieve-report
+  file: skills/myome-track-order-and-retrieve-report.md
+  description: Poll an order through the laboratory lifecycle and retrieve the finished report.
+  consequence: read-only
+  requires_human_confirmation: false
+  operations:
+  - myome.api.endpoints.requisition.requisition_list
+  - myome.api.endpoints.requisition.requisition_get
+  - myome.api.endpoints.order.order_get
+notes: 'Only two skills are packaged because MyOme publishes operation detail for only 8 operations.
+  The other 55 paths in the contract have their operations withheld from anonymous callers, so no
+  skill can be grounded in them without inventing verbs and payloads.'

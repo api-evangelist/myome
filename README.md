@@ -64,5 +64,28 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-MyOme is a company surfaced via the API Evangelist harvest backlog (source: secondary-market) and added to the network as a stub for full-pipeline profiling.
-- https://www.nasdaqprivatemarket.com/
+MyOme is a CLIA-certified and CAP-accredited clinical laboratory in Menlo Park, California that builds
+a whole-genome analysis platform for inherited disease risk. A single patient sample is sequenced once
+and re-interpreted over time into clinically actionable reports — Single-Gene Risk, Medication Response
+(pharmacogenomics), and cross-ancestry Integrated Polygenic Risk Scores (iPRS) for breast cancer,
+coronary artery disease, prostate cancer and type 2 diabetes — alongside a rare-disease portfolio
+spanning genome, exome and copy-number analysis.
+
+MyOme publishes a partner-facing REST API (OpenAPI 3.0.2, `info.version` 2.51.0) that lets
+institutional clients list orderable products, submit sequencing requisitions, track requisition and
+order status, and retrieve results including sequencing data, structured interpretation data and PDF
+reports. Authorization is a bearer JWT issued by MyOme's Keycloak at `auth.myome.com` using
+partner-specific credentials, and an external sandbox instance is published for partner
+testing/development.
+
+- Website: https://myome.com/
+- API reference: https://api.myome.com/0/ui/
+- OpenAPI: https://api.myome.com/0/openapi.json
+- Production base URL: https://api.myome.com/0/
+- Sandbox base URL: https://api.sbx.myome.com/0/
+- GitHub organization: https://github.com/myome
+
+The published OpenAPI document lists 63 paths but exposes operation detail for only 8 of them to
+anonymous callers; the remaining 55 (patient portal, provider portal, institutional administration,
+billing) appear as path keys with their operations withheld pending partner authorization. See
+`mcp/myome-tool-crosswalk.yml` for the full inventory of withheld paths.

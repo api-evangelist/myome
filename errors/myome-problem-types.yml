@@ -1,0 +1,85 @@
+generated: '2026-08-26'
+method: derived
+source: 'openapi/myome-openapi.json (components.responses.StructuredError + info.description "HTTP Status
+  Codes" section), corroborated by live probes of https://api.myome.com/0/product (401) and
+  https://api.myome.com/0/consent (400) on 2026-08-26.'
+format: mixed
+envelopes:
+- name: StructuredError
+  where: declared in the OpenAPI document (components.responses.StructuredError)
+  media_type: application/json
+  required: [title, detail]
+  fields:
+  - name: title
+    type: string
+    description: Short human-readable summary of the problem type.
+  - name: detail
+    type: string
+    description: Human-readable explanation specific to this occurrence.
+  - name: code
+    type: string
+    nullable: true
+    description: The type of error that occurred (e.g. validation_error).
+  - name: errors
+    type: object
+    nullable: true
+    description: Dictionary of field names to error messages; may nest one level for nested fields.
+  - name: extra
+    type: object|string
+    nullable: true
+  examples:
+  - {title: Validation error, detail: There was an error validating the request}
+  - {code: validation_error, title: Validation error, detail: Validation error, errors: {field1: field is required}}
+- name: RFC 9457 problem detail
+  where: what the gateway actually returns at runtime
+  media_type: application/problem+json
+  required: [type, title, detail, status]
+  fields:
+  - name: type
+    type: string
+    description: Problem type URI. Observed value is always "about:blank" — the RFC 9457 default,
+      meaning no problem-type registry is published.
+  - name: title
+    type: string
+  - name: detail
+    type: string
+  - name: status
+    type: integer
+  observed:
+  - url: https://api.myome.com/0/product
+    status: 401
+    body: '{"type": "about:blank", "title": "Unauthorized", "detail": "No authorization token provided", "status": 401}'
+  - url: https://api.myome.com/0/consent
+    status: 400
+    body: '{"type": "about:blank", "title": "HTTPException", "detail": "Missing query parameter ''consents''", "status": 400}'
+divergence: 'The contract and the runtime disagree on the error envelope. Every 4xx declared in the
+  spec $refs components.responses.StructuredError with media type application/json, but the live API
+  answers application/problem+json with an RFC 9457 shape that adds a required `status` member and a
+  `type` URI, and omits `code`/`errors`/`extra`. A client written to the spec will not find the fields
+  it was told to expect on a gateway-level rejection. Recorded, not corrected.'
+status_codes:
+- code: 200
+  meaning: Success
+- code: 201
+  meaning: Created — returned by a successful create along with the created object identifier.
+- code: 204
+  meaning: No Content
+- code: 400
+  meaning: Bad Request
+- code: 401
+  meaning: Unauthorized — no authorization token provided, or the JWT is expired/invalid.
+- code: 403
+  meaning: Forbidden
+- code: 404
+  meaning: Resource Not Found
+- code: 415
+  meaning: Unsupported Media Type
+- code: 500
+  meaning: Internal Server Error
+problem_types: []
+notes: 'MyOme publishes no error-code registry: `code` is declared as a free-form nullable string and
+  the only value appearing anywhere in the specification is `validation_error`. There is no documented
+  enumeration of problem types, so problem_types[] is deliberately empty rather than invented. The
+  domain does carry status vocabularies that a client must handle as terminal outcomes even though
+  they are not HTTP errors — ExternalOrderStatus DENIED / CANCELED / FAILED, with a nullable
+  `status_reason` (e.g. SAMPLE_NOT_RECEIVED) and `status_message` on the order object.'

@@ -1,18 +1,86 @@
 aid: myome
 name: MyOme
-description: 'MyOme is a company surfaced via the API Evangelist harvest backlog (source: secondary-market)
-  and added to the network as a stub for full-pipeline profiling.'
+description: 'MyOme is a CLIA-certified and CAP-accredited clinical laboratory in Menlo Park,
+  California that builds a whole-genome analysis platform for inherited disease risk. A single
+  patient sample is sequenced once and re-interpreted over time to produce clinically actionable
+  reports: Single-Gene Risk, Medication Response (pharmacogenomics), and cross-ancestry Integrated
+  Polygenic Risk Scores (iPRS) for breast cancer, coronary artery disease, prostate cancer and type
+  2 diabetes, alongside a rare-disease portfolio spanning genome, exome and copy-number analysis.
+  MyOme publishes a partner-facing REST API (OpenAPI 3.0.2, version 2.51.0) at api.myome.com that
+  lets institutional clients list orderable products, submit sequencing requisitions, track
+  requisition and order status, and retrieve results including sequencing data, structured
+  interpretation data and PDF reports. Authorization is bearer JWT issued by MyOme''s Keycloak at
+  auth.myome.com using partner-specific credentials, and a separate external sandbox instance
+  (api.sbx.myome.com) is published for partner testing and development.'
+image: https://myome.com/ext/myome.png
 url: https://raw.githubusercontent.com/api-evangelist/myome/refs/heads/main/apis.yml
 x-type: company
 x-source: harvest:secondary-market
-x-tier: stub
-x-tier-reason: harvest
 specificationVersion: '0.20'
 created: '2026-08-26'
 modified: '2026-08-26'
 tags:
 - Company
-apis: []
+- Genomics
+- Healthcare
+- Clinical Laboratory
+- Whole Genome Sequencing
+- Precision Medicine
+- Bioinformatics
+- Polygenic Risk Scores
+- Pharmacogenomics
+- Rare Disease
+- Diagnostics
+- Life Sciences
+apis:
+- aid: myome-api
+  name: MyOme API
+  description: 'Partner-facing REST API for MyOme''s clinical whole-genome laboratory. Clients list
+    the sequencing and analysis Products available to them (identifiers prefixed PR), submit
+    Requisitions for a sample (prefixed RQ) which fan out into one Order per Product (prefixed OR),
+    poll requisition and order status through the SUBMITTED / AWAITING_SAMPLE / ANALYZING /
+    CLINICIAN_REVIEW / COMPLETED lifecycle, and retrieve Reports including sequencing data,
+    structured interpretation data and PDF reports via result links. The published OpenAPI 3.0.2
+    document declares 63 paths but exposes operation detail for only 8 of them to anonymous
+    callers; the remainder (patient portal, provider portal, institutional administration, billing)
+    are listed as paths with their operations withheld pending partner authorization.'
+  humanURL: https://api.myome.com/0/ui/
+  baseURL: https://api.myome.com/0/
+  tags:
+  - Genomics
+  - Requisitions
+  - Orders
+  - Reports
+  - Clinical Laboratory
+  properties:
+  - type: OpenAPI
+    url: openapi/myome-openapi.json
+  - type: Documentation
+    url: https://api.myome.com/0/ui/
+  - type: APIReference
+    url: https://api.myome.com/0/ui/
+  - type: Authentication
+    url: authentication/myome-authentication.yml
+  - type: ErrorCatalog
+    url: errors/myome-problem-types.yml
+  - type: Conventions
+    url: conventions/myome-conventions.yml
+  - type: DataModel
+    url: data-model/myome-data-model.yml
+  - type: Conformance
+    url: conformance/myome-conformance.yml
+  - type: Lifecycle
+    url: lifecycle/myome-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/myome-sandbox.yml
+  - type: RateLimits
+    url: rate-limits/myome-rate-limits.yml
+  - type: Overlay
+    url: overlays/myome-openapi-overlay.yaml
+  - type: ToolCrosswalk
+    url: mcp/myome-tool-crosswalk.yml
+  - type: AgentSkill
+    url: skills/_index.yml
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
@@ -20,4 +88,41 @@ maintainers:
   email: info@apis.io
 common:
 - type: Website
-  url: https://www.nasdaqprivatemarket.com/
+  url: https://myome.com/
+- type: Documentation
+  url: https://api.myome.com/0/ui/
+- type: APIReference
+  url: https://api.myome.com/0/ui/
+- type: Support
+  url: https://myome.com/contact-us
+- type: HelpCenter
+  url: https://myome.com/resources/faq
+- type: Blog
+  url: https://myome.com/resources/blog
+- type: GitHubOrganization
+  url: https://github.com/myome
+- type: TermsOfService
+  url: https://myome.com/legal/terms-of-service
+- type: PrivacyPolicy
+  url: https://myome.com/legal/privacy-notice
+- type: SignUp
+  url: https://providers.myome.com/
+- type: Login
+  url: https://patients.myome.com/
+- type: Compliance
+  url: https://myome.com/about-us/privacy-and-security
+- type: Plans
+  url: plans/myome-plans-pricing.yml
+- type: RateLimits
+  url: rate-limits/myome-rate-limits.yml
+- type: Packages
+  url: packages/myome-packages.yml
+- type: LLMsTxt
+  url: llms/myome-llms.txt
+- type: DomainSecurity
+  url: security/myome-domain-security.yml
+x-enrichment:
+  date: '2026-08-26'
+  status: enriched
+  artifacts_added: 21
+  pass: local-v1

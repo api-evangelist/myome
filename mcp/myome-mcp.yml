@@ -1,0 +1,75 @@
+generated: '2026-08-26'
+method: derived
+source: 'openapi/myome-openapi.json — candidate tools derived from the 8 anonymously-visible
+  operations. Search for a first-party MCP server on 2026-08-26 found none: https://mcp.myome.com/
+  does not resolve, https://api.myome.com/mcp and https://api.myome.com/0/mcp return 404
+  (application/problem+json), no MCP server is registered in npm or PyPI under "myome", and none of
+  the 10 public repos in github.com/myome is an MCP server.'
+status: candidate
+deployment:
+  mode: none
+  endpoint: null
+  install: null
+  package: null
+  auth: unknown
+  verified: probed
+server:
+  name: null
+  vendor: MyOme
+  official: false
+tools:
+- name: list_products
+  description: List the sequencing and analysis products the authenticated client can order.
+  rest_operation_id: myome.api.endpoints.product.product_get
+  rest: GET /product
+  read_only: true
+- name: list_consent_types
+  description: List available consent types (general and, via the required `consents` query parameter, product-specific).
+  rest_operation_id: myome.api.endpoints.consent.consent_get
+  rest: GET /consent
+  read_only: true
+- name: list_requisitions
+  description: List open requisitions for the authenticated caller, paginated and sortable.
+  rest_operation_id: myome.api.endpoints.requisition.requisition_list
+  rest: GET /requisition
+  read_only: true
+- name: get_requisition
+  description: Fetch a single requisition by RQ identifier, including its orders, consents, subject and clinicians.
+  rest_operation_id: myome.api.endpoints.requisition.requisition_get
+  rest: GET /requisition/{requisition_id}
+  read_only: true
+- name: get_order
+  description: Get order status and, when complete, result access such as pre-signed report URIs.
+  rest_operation_id: myome.api.endpoints.order.order_get
+  rest: GET /order/{order_id}
+  read_only: true
+- name: create_requisition
+  description: Submit a new requisition for a sample, creating one order per requested product.
+  rest_operation_id: myome.api.endpoints.requisition.requisition_post
+  rest: POST /requisition
+  read_only: false
+  consequence: high
+  note: 'Creates billable clinical laboratory orders against a patient sample. The API exposes no
+    idempotency key and no reversal operation — see conventions/myome-conventions.yml.'
+- name: create_partner_requisition
+  description: Submit a partner-scoped institutional requisition.
+  rest_operation_id: myome.api.endpoints.institutional.requisition.partner_requisition_post
+  rest: POST /institutional/partner-requisition
+  read_only: false
+  consequence: high
+- name: add_campaign_individual
+  description: Enrol an individual into an institutional campaign identified by campaign code.
+  rest_operation_id: myome.api.endpoints.institutional.campaign.individual.individual_post
+  rest: POST /institutional/campaign/{campaign_code}/individual
+  read_only: false
+  consequence: medium
+notes: 'This is a DERIVED candidate tool list, not a server MyOme ships. Nobody publishes an MCP server
+  for MyOme. Any tool built from it inherits the API''s bearer-JWT requirement (Keycloak, partner
+  credentials issued by secure email) and its PHI handling obligations: every one of these tools moves
+  identified patient health information, and three of them are irreversible clinical write operations,
+  so this surface should not be exposed to an autonomous agent without human confirmation on the
+  writes.'
+pointer_policy: 'NO type: MCPServer pointer is emitted in apis.yml. MyOme ships no MCP server
+  (deployment.mode: none) and the tools above are a derived candidate list authored by API Evangelist.
+  Emitting the pointer would credit MyOme with an agent surface it does not operate, which is the same
+  error the pipeline forbids for agent cards and /.well-known/ documents.'

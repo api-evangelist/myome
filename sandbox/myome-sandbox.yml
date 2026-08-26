@@ -1,0 +1,47 @@
+generated: '2026-08-26'
+method: probed
+source: 'openapi/myome-openapi.json servers[] block, confirmed by live probes of
+  https://api.sbx.myome.com/0/openapi.json (HTTP 200) and https://api.sbx.myome.com/0/ui/ (HTTP 200)
+  on 2026-08-26.'
+published: true
+environments:
+- name: External sandbox
+  base_url: https://api.sbx.myome.com/0/
+  description: 'External sandbox instance for partner testing/development (verbatim from the OpenAPI
+    servers[] description).'
+  docs_url: https://api.sbx.myome.com/0/ui/
+  spec_url: https://api.sbx.myome.com/0/openapi.json
+  probed:
+    spec_status: 200
+    ui_status: 200
+    tls: TLSv1.3
+    hsts: true
+  parity: 'The sandbox serves the same OpenAPI document as production — identical info.version 2.51.0,
+    identical 63 paths and identical 8 anonymously-visible operations. The two documents differ by 554
+    bytes of server/description text only.'
+- name: Production
+  base_url: https://api.myome.com/0/
+  description: Production API
+key_model:
+  test_vs_live_prefixes: null
+  detail: 'MyOme does not use a test/live key prefix convention. Environments are separated by host
+    (api.sbx.myome.com vs api.myome.com), and credentials are Keycloak-issued partner credentials
+    delivered by secure email at account creation, so a sandbox credential is a distinct account
+    rather than a distinguishable key.'
+self_service: false
+self_service_detail: 'There is no sign-up flow for sandbox access. The spec states MyOme provides
+  credentials to partners via secure email during account creation, so the sandbox is reachable
+  (the host and spec are public and anonymous) but not usable without a partner relationship.'
+test_data:
+  test_identifiers: []
+  test_cards: []
+  fixtures: []
+  detail: 'No magic test identifiers, test sample IDs, test cards or fixture/trigger tooling are
+    published. The identifier schemas do permit an environment infix (e.g. RQ-dev-0123456,
+    SM-dev-0123456, IN-dev-123456) which indicates non-production identifiers exist, but MyOme
+    publishes no reserved values a partner may use, so none are recorded here.'
+time_simulation:
+  supported: false
+  detail: 'No test clock or time-simulation tooling is published — relevant because the order lifecycle
+    is gated on physical sample receipt and laboratory turnaround, which a sandbox cannot compress
+    without one.'

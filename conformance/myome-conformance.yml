@@ -1,0 +1,122 @@
+generated: '2026-08-26'
+method: derived
+source: 'openapi/myome-openapi.json plus https://myome.com/about-us/privacy-and-security and
+  https://myome.com/legal/hipaa-notice-of-privacy-practices (both fetched 2026-08-26) and live probes
+  of api.myome.com.'
+standards:
+- id: openapi
+  conforms: true
+  version: 3.0.2
+  evidence: 'openapi/myome-openapi.json declares "openapi": "3.0.2" and parses; served at
+    https://api.myome.com/0/openapi.json (HTTP 200, application/json, 186,101 bytes) and mirrored at
+    https://api.sbx.myome.com/0/openapi.json (HTTP 200).'
+- id: rfc9457
+  conforms: partial
+  evidence: 'The live gateway returns application/problem+json with the required RFC 9457 members
+    type/title/detail/status — observed on https://api.myome.com/0/product (401) and
+    https://api.myome.com/0/consent (400). It is partial because `type` is always the "about:blank"
+    default (no problem-type registry is published) and because the OpenAPI document declares a
+    different, non-RFC-9457 envelope (application/json StructuredError) for the same responses.'
+- id: oauth2
+  conforms: false
+  evidence: 'The only securityScheme in the contract is `jwt` (type http, scheme bearer, bearerFormat
+    JWT). No oauth2 flows, no authorizationUrl/tokenUrl and no scopes are declared. Tokens are issued
+    by Keycloak out of band, so the grant is not described in the contract.'
+- id: oidc
+  conforms: unknown
+  evidence: 'auth.myome.com is a Keycloak deployment (its 404 bodies carry the Keycloak/RESTEasy
+    marker "RESTEASY003210"), and Keycloak is an OIDC provider, but no OIDC discovery document is
+    reachable anonymously: /.well-known/openid-configuration 404s at the host root and at
+    /realms/<realm>/ and /auth/realms/<realm>/ for ten candidate realm names. The realm name is
+    partner-private, so conformance cannot be asserted from the outside.'
+- id: bearer-token-rfc6750
+  conforms: true
+  evidence: 'info.description: "All endpoints require authorization using JSON Web Tokens (JWT) using
+    the header: `Authorization: Bearer <token>`"; components.securitySchemes.jwt.scheme = bearer.'
+- id: json-api
+  conforms: false
+  evidence: 'Responses are plain JSON objects; no data/attributes/relationships envelope and no
+    application/vnd.api+json media type appears in the contract.'
+- id: pagination
+  conforms: true
+  style: page-number
+  evidence: 'components.parameters.PaginationPageNumber (page, integer >= 1) and
+    components.parameters.PaginationPageSize (per_page, integer >= 1), applied on GET /requisition.'
+- id: idempotency
+  conforms: false
+  evidence: 'No idempotency key header, parameter or retention policy is declared anywhere in the
+    contract or the docs, on an API whose POST /requisition creates a billable clinical laboratory
+    order. See conventions/myome-conventions.yml.'
+- id: hsts
+  conforms: true
+  evidence: 'strict-transport-security: max-age=63072000; includeSubDomains observed on myome.com,
+    api.myome.com and api.sbx.myome.com; all three negotiate TLSv1.3. See
+    security/myome-domain-security.yml.'
+- id: fhir
+  conforms: false
+  evidence: 'No FHIR resource names, no application/fhir+json media type, no /Patient, /Observation,
+    /DiagnosticReport or /ServiceRequest endpoint, and no CapabilityStatement appear anywhere in the
+    contract. MyOme models the domain with proprietary types (Requisition/Order/Product/Report) rather
+    than the HL7 FHIR Genomics Reporting profiles that would be the sector standard for returning a
+    diagnostic genomic report to an EHR. Recorded as an observed absence — reward-only, so no penalty
+    is implied, but a partner already speaking FHIR will need a bespoke connector.'
+- id: hl7v2
+  conforms: false
+  evidence: 'No HL7 v2 ORM/ORU message types, no MSH/OBR/OBX segment vocabulary, and no ER7/pipe-and-hat
+    or HL7 media type appears in the contract, despite the requisition/result flow being exactly the
+    lab-order/lab-result exchange HL7 v2 was written for.'
+- id: ga4gh
+  conforms: false
+  evidence: 'No GA4GH standard is referenced — no htsget, no refget, no Phenopacket, no Beacon, no
+    Data Repository Service. Result payloads are exposed as opaque pre-signed URIs with a mimetype
+    rather than as a GA4GH-typed resource.'
+domain_standards:
+- id: npi
+  name: NPI (CMS National Provider Identifier)
+  conforms: true
+  evidence: 'components.schemas.NPI: {"type":"string","title":"NPI","pattern":"^\\d{9,10}$"}. The NPI
+    schema is referenced 42 times across the contract, on Clinician, PhysicianOfRecord and provider
+    onboarding shapes. This is the US national registry identifier for healthcare providers, so a
+    partner EHR or practice-management system can bind its own provider records to MyOme''s without a
+    bilateral crosswalk.'
+  spec_location: components.schemas.NPI
+- id: clia
+  name: CLIA laboratory certification number
+  conforms: true
+  evidence: 'components.schemas.CLIANumber: {"type":"string","pattern":"^\\d{2}D[A-Za-z0-9]{7}$"} —
+    the CMS CLIA number format (two-digit state code, "D" facility-type letter, seven-character
+    sequence). Carrying the ordering/performing laboratory''s CLIA number in the contract is what makes
+    a result reportable under 42 CFR 493.'
+  spec_location: components.schemas.CLIANumber
+- id: icd
+  name: ICD diagnosis coding
+  conforms: partial
+  evidence: 'ICD appears twice in the contract as a field/description reference on the clinical
+    indication surface, but no code system version is pinned and no value set is declared, so the
+    field is a free-text carrier for an ICD code rather than a validated coded element.'
+  spec_location: contract description text
+compliance:
+  programs:
+  - name: CLIA
+    status: certified
+    source: https://myome.com/about-us/privacy-and-security
+    detail: MyOme operates a CLIA-certified clinical laboratory.
+  - name: CAP
+    status: accredited
+    source: https://myome.com/about-us/privacy-and-security
+    detail: College of American Pathologists laboratory accreditation.
+  - name: HIPAA
+    status: compliant
+    source: https://myome.com/legal/hipaa-notice-of-privacy-practices
+    detail: 'A HIPAA Notice of Privacy Practices is published at
+      https://myome.com/legal/hipaa-notice-of-privacy-practices (HTTP 200).'
+  not_found: [SOC 2, ISO 27001, HITRUST, FedRAMP, PCI DSS, GDPR certification]
+  not_found_note: 'Searched https://myome.com/about-us/privacy-and-security and probed
+    https://trust.myome.com/ (DNS does not resolve). MyOme names encryption in transit and at rest,
+    role-based access control, regular security audits and vulnerability monitoring, and breach
+    notification protocols in prose, but publishes no third-party attestation report or trust center.'
+notes: 'Reward-only dimension: MyOme''s market (clinical genomics / laboratory ordering) DOES have
+  domain standards — HL7 v2 lab orders and results, FHIR Genomics Reporting, and the GA4GH family —
+  and the contract adopts none of them at the message level. It does adopt the two US healthcare
+  registry identifier schemes that matter for provider and laboratory identity (NPI, CLIA), which is
+  recorded above as a genuine domain-standard signature read from the schema definitions themselves.'

@@ -1,0 +1,66 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enrichment overlay for the MyOme API
+  version: 1.0.0
+x-metadata:
+  generated: '2026-08-26'
+  method: generated
+  source: openapi/myome-openapi.json
+  extends: openapi/myome-openapi.json
+  note: 'Captures API Evangelist enrichment only. The original specification at
+    openapi/myome-openapi.json is never mutated; every statement below is derived from that document
+    or from a probe recorded in this repository.'
+actions:
+- target: $.info
+  description: Record where the enriched profile lives.
+  update:
+    x-apis-io-profile: https://apis.io/provider/myome
+    x-enrichment-source: https://api.myome.com/0/openapi.json
+- target: $.info
+  description: Flag the contract/runtime error-envelope divergence recorded in errors/myome-problem-types.yml.
+  update:
+    x-error-envelope-divergence: 'Declared: application/json StructuredError {title, detail, code?, errors?, extra?}.
+      Observed at runtime: application/problem+json RFC 9457 {type, title, detail, status}. Probed 2026-08-26.'
+- target: $.info
+  description: Record the agent-safety facts an autonomous caller needs before it writes.
+  update:
+    x-agent-safety:
+      idempotency: none
+      reversibility: none
+      rate_limit_signal: none
+      pii: 'Requests and responses carry identified PHI under HIPAA.'
+      guidance: 'Do not auto-retry POST operations; each retry creates an additional billable clinical
+        laboratory order and no reversal operation is published.'
+- target: $.info
+  description: Record the domain-standard identifier schemes the contract adopts.
+  update:
+    x-domain-standards:
+      adopted: [NPI (CMS National Provider Identifier), CLIA laboratory certification number]
+      not_adopted: [HL7 v2, FHIR (incl. Genomics Reporting), GA4GH (htsget/refget/Phenopacket/Beacon)]
+- target: $.paths['/requisition'].post
+  description: Mark the highest-consequence write operation.
+  update:
+    x-consequence: high
+    x-reversible: false
+    x-idempotent: false
+    x-agent-guidance: 'Creates a clinical laboratory requisition and one billable Order per requested
+      Product. Requires human confirmation. No cancel operation is published and no reversal window is stated.'
+- target: $.paths['/institutional/partner-requisition'].post
+  description: Mark the institutional write operation.
+  update:
+    x-consequence: high
+    x-reversible: false
+    x-idempotent: false
+- target: $.paths['/institutional/campaign/{campaign_code}/individual'].post
+  description: Mark the campaign enrolment write operation.
+  update:
+    x-consequence: medium
+    x-reversible: false
+    x-idempotent: false
+- target: $.components.securitySchemes.jwt
+  description: Record how a partner actually obtains the JWT, which the scheme description only alludes to.
+  update:
+    x-token-issuer: https://auth.myome.com (Keycloak)
+    x-token-lifetime: 'Refreshes every hour.'
+    x-credential-delivery: 'MyOme provides partner-specific credentials by secure email at account creation. No self-service sign-up.'
+    x-oidc-discovery: 'Not reachable anonymously; the Keycloak realm name is partner-private (probed 2026-08-26).'

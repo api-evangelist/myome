@@ -1,0 +1,24 @@
+generated: '2026-08-26'
+method: probed
+source: 'openapi/myome-openapi.json (no 429 response, no RateLimit headers declared, components.headers
+  is empty) plus live unauthenticated responses from https://api.myome.com/0/product and
+  https://api.myome.com/0/consent observed 2026-08-26.'
+limit_count: 0
+limits: []
+response_headers: []
+exhaustion_status: null
+retry_after: false
+observed_response_headers:
+- server
+- x-frame-options
+- content-security-policy
+- x-content-type-options
+- referrer-policy
+- strict-transport-security
+- x-envoy-upstream-service-time
+notes: 'MyOme documents no rate limits and emits no rate-limit signal. No 429 response is declared on
+  any operation in the OpenAPI document, components.headers is empty, and no X-RateLimit-*,
+  RateLimit-* or Retry-After header appeared on any live response. The gateway is Envoy, which is
+  capable of rate limiting, but nothing is advertised to the client either in the contract or at
+  runtime — so a partner integration has no way to back off deliberately and would discover any limit
+  only by tripping it. An honest zero: checked, nothing published.'

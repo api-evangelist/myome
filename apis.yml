@@ -33,28 +33,17 @@ tags:
 - Diagnostics
 - Life Sciences
 apis:
-- aid: myome-api
-  name: MyOme API
-  description: 'Partner-facing REST API for MyOme''s clinical whole-genome laboratory. Clients list
-    the sequencing and analysis Products available to them (identifiers prefixed PR), submit
-    Requisitions for a sample (prefixed RQ) which fan out into one Order per Product (prefixed OR),
-    poll requisition and order status through the SUBMITTED / AWAITING_SAMPLE / ANALYZING /
-    CLINICIAN_REVIEW / COMPLETED lifecycle, and retrieve Reports including sequencing data,
-    structured interpretation data and PDF reports via result links. The published OpenAPI 3.0.2
-    document declares 63 paths but exposes operation detail for only 8 of them to anonymous
-    callers; the remainder (patient portal, provider portal, institutional administration, billing)
-    are listed as paths with their operations withheld pending partner authorization.'
+- aid: myome:myome-institutional-interface-api
+  name: MyOme Institutional Interface API
+  description: >-
+    Institution onboarding and institution-scoped operations (requisitions, orders, campaigns).
   humanURL: https://api.myome.com/0/ui/
   baseURL: https://api.myome.com/0/
   tags:
-  - Genomics
-  - Requisitions
-  - Orders
-  - Reports
-  - Clinical Laboratory
+  - Institutional Interface
   properties:
   - type: OpenAPI
-    url: openapi/myome-openapi.json
+    url: openapi/myome-institutional-interface-api-openapi.yml
   - type: Documentation
     url: https://api.myome.com/0/ui/
   - type: APIReference
@@ -75,18 +64,83 @@ apis:
     url: sandbox/myome-sandbox.yml
   - type: RateLimits
     url: rate-limits/myome-rate-limits.yml
-  - type: Overlay
-    url: overlays/myome-openapi-overlay.yaml
   - type: ToolCrosswalk
     url: mcp/myome-tool-crosswalk.yml
-  - type: AgentSkill
-    url: skills/_index.yml
+- aid: myome:myome-requisitions-and-orders-api
+  name: MyOme Requisitions and Orders API
+  description: >-
+    Submit, list, and fetch requisitions and orders; get order results; list re-requisitionable products.
+  humanURL: https://api.myome.com/0/ui/
+  baseURL: https://api.myome.com/0/
+  tags:
+  - Requisitions and Orders
+  properties:
+  - type: OpenAPI
+    url: openapi/myome-requisitions-and-orders-api-openapi.yml
+  - type: Documentation
+    url: https://api.myome.com/0/ui/
+  - type: APIReference
+    url: https://api.myome.com/0/ui/
+  - type: Authentication
+    url: authentication/myome-authentication.yml
+  - type: ErrorCatalog
+    url: errors/myome-problem-types.yml
+  - type: Conventions
+    url: conventions/myome-conventions.yml
+  - type: DataModel
+    url: data-model/myome-data-model.yml
+  - type: Conformance
+    url: conformance/myome-conformance.yml
+  - type: Lifecycle
+    url: lifecycle/myome-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/myome-sandbox.yml
+  - type: RateLimits
+    url: rate-limits/myome-rate-limits.yml
+  - type: ToolCrosswalk
+    url: mcp/myome-tool-crosswalk.yml
+- aid: myome:myome-resources-api
+  name: MyOme Resources API
+  description: Reference data—orderable products and consent types (general and product-specific).
+  humanURL: https://api.myome.com/0/ui/
+  baseURL: https://api.myome.com/0/
+  tags:
+  - Resources
+  properties:
+  - type: OpenAPI
+    url: openapi/myome-resources-api-openapi.yml
+  - type: Documentation
+    url: https://api.myome.com/0/ui/
+  - type: APIReference
+    url: https://api.myome.com/0/ui/
+  - type: Authentication
+    url: authentication/myome-authentication.yml
+  - type: ErrorCatalog
+    url: errors/myome-problem-types.yml
+  - type: Conventions
+    url: conventions/myome-conventions.yml
+  - type: DataModel
+    url: data-model/myome-data-model.yml
+  - type: Conformance
+    url: conformance/myome-conformance.yml
+  - type: Lifecycle
+    url: lifecycle/myome-lifecycle.yml
+  - type: Sandbox
+    url: sandbox/myome-sandbox.yml
+  - type: RateLimits
+    url: rate-limits/myome-rate-limits.yml
+  - type: ToolCrosswalk
+    url: mcp/myome-tool-crosswalk.yml
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
 - FN: APIs.json
   email: info@apis.io
 common:
+- type: Overlay
+  url: overlays/myome-openapi-overlay.yaml
+- type: AgentSkill
+  url: skills/_index.yml
 - type: Website
   url: https://myome.com/
 - type: Documentation

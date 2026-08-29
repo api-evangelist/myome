@@ -12,6 +12,17 @@ description: 'MyOme is a CLIA-certified and CAP-accredited clinical laboratory i
   interpretation data and PDF reports. Authorization is bearer JWT issued by MyOme''s Keycloak at
   auth.myome.com using partner-specific credentials, and a separate external sandbox instance
   (api.sbx.myome.com) is published for partner testing and development.'
+deliveryModel:
+  model: saas
+  open_source: false
+  commercial: true
+  callable_host: false
+  label: Hosted service · you call their endpoint
+  confidence: medium
+  source:
+  - pricing
+  generated: '2026-08-28'
+  method: derived
 image: https://myome.com/ext/myome.png
 url: https://raw.githubusercontent.com/api-evangelist/myome/refs/heads/main/apis.yml
 x-type: company

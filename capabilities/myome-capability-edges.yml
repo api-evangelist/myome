@@ -1,0 +1,26 @@
+slug: myome
+provider: MyOme
+generated_by: planning/capability-mapping/scripts/classify_capabilities.py
+model: claude-opus-5
+frame:
+- Healthcare Providers
+min_confidence: 0.7
+capability_model:
+  source: https://github.com/vincentmakes/turbo-ea-capabilities
+  license: CC-BY-4.0
+  attribution: Turbo EA Capabilities by Vincent Verdet — Turbo EA, https://github.com/vincentmakes/turbo-ea-capabilities,
+    CC BY 4.0
+  notice: NOTICE
+edge_count: 1
+edges:
+- tag: Requisitions and Orders
+  spec_file: myome-requisitions-and-orders-api-openapi.yml
+  capability_id: BC-2860.10
+  capability_id_l1: BC-2860
+  capability_name: Laboratory Services Management
+  confidence: 0.7
+  evidence: '"Submit requisitions for sequencing for new samples"; "Get order status and results (caller''s
+    context)"; "Create or update a requisition"'
+  reason: End-to-end laboratory requisition, order-status and result retrieval for a clinical genomics
+    lab — laboratory services/order-and-result operations. Some ambiguity between laboratory services
+    management and diagnostic results management sub-capabilities.

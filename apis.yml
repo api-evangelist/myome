@@ -148,6 +148,9 @@ maintainers:
 - FN: APIs.json
   email: info@apis.io
 common:
+- type: CapabilityMap
+  url: capabilities/myome-capability-edges.yml
+  name: MyOme Business Capability Map
 - type: Overlay
   url: overlays/myome-openapi-overlay.yaml
 - type: AgentSkill

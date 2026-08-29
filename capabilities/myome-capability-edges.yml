@@ -18,9 +18,9 @@ edges:
   capability_id: BC-2860.10
   capability_id_l1: BC-2860
   capability_name: Laboratory Services Management
-  confidence: 0.7
-  evidence: '"Submit requisitions for sequencing for new samples"; "Get order status and results (caller''s
-    context)"; "Create or update a requisition"'
-  reason: End-to-end laboratory requisition, order-status and result retrieval for a clinical genomics
-    lab — laboratory services/order-and-result operations. Some ambiguity between laboratory services
-    management and diagnostic results management sub-capabilities.
+  confidence: 0.75
+  evidence: '''Create or update a requisition'', ''Get order status and results (caller''s context)'',
+    ''Submit requisitions for sequencing for new samples'''
+  reason: Operations create and track laboratory test requisitions/orders and return sequencing and interpretation
+    results — clinical laboratory (molecular testing) service and results handling, matching Laboratory
+    Services Management.

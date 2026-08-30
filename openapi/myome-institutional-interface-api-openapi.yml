@@ -1,0 +1,1050 @@
+openapi: 3.2.0
+info:
+  title: MyOme Institutional Interface API
+  version: 2.51.0
+  contact:
+    email: support@myome.com
+  description: "The MyOme API enables clients to:\n- List sequencing and analysis products available to the client.\n- Submit requisitions for sequencing for new samples.\n- Check status of requisitions and orders.\n- Retrieve order results, including sequencing data, structured interpretation\n  data, and PDF reports.\n\n# API Overview\n\n## Terminology\n\n- A *Product* is a specific assay or intepretation service. Product\n  identifiers begin with `PR`.\n- A *Requisition* is a request for one or more Products for a single sample.\n  Requisition identifiers begin with `RQ`.\n- An *Order* is\n  a request for a specific service for a specific sample.  An Order is created for each\n  Product requested in a Requisition Order identifiers\n  begin with `OR`.   \n- A *Report* is the end result of a successful Order. An Order typically has one\n  associated Report, but may have zero in the case of failure or multiple in\n  the case of amended or corrected reports.\n\n## Typical flow\n\n- Client obtains JWT from auth.myome.com. All of the following interactions with the MyOme API include\n  this JWT for authorization (details below).\n- Client sends a requisition to MyOme with product ID(s). Each product will generate a distinct order attached to that requisition. \n  The MyOme API returns a MyOme requisition id.\n- Client fetches information about the Requisition. The response includes an order id for each Order placed.\n- Client fetches information about each Order. The response includes the status and, if\n  available, links to results.\n\n## Order Statuses\n\nOrder status:\n- SUBMITTED - Order has been received\n- DENIED - Denied by physician of record (only relevant for patient-initiated testing requests)\n- CANCELED - Order was canceled\n- AWAITING_SAMPLE - Sample has not arrived yet\n- ANALYZING - Order is being processed\n- CLINICIAN_REVIEW - Order results sent to clinician and waiting for review\n- COMPLETED - Order has been completed\n\n# API Conventions\n\n## Authorization\n\nAll endpoints require authorization using JSON Web Tokens (JWT) using the header: `Authorization: Bearer <token>`. `<token>` is a JWT generated using Keycloak with partner-specific credientials. \nNote that the token refreshes every hour. MyOme will provide credentials to partners via secure email during account creation. Those credentials should be kept confidential.\n\n## HTTP Status Codes\n\nThe MyOme API uses the following standard HTTP status codes to indicate the success or failure\nof an API request.\n\n    200 Success\n    201 Created\n    204 No Content\n    400 Bad Request\n    401 Unauthorized\n    403 Forbidden\n    404 Resource Not Found\n    415 Unsupported Media Type\n    500 Internal Server Error\n\nA successful create request returns 201 Created along with the created object identifier. A successful\nupdate request returns 200 OK along with the updated object. An unsuccessful API request returns\na relevant HTTP status code along with an error response."
+servers:
+- url: /0/
+  description: local development server
+- url: https://api.sbx.myome.com/0/
+  description: External sandbox instance for partner testing/development
+- url: https://api.myome.com/0/
+  description: Production API
+tags:
+- name: Institutional Interface
+  description: Institution onboarding and institution-scoped operations (requisitions, orders, campaigns).
+paths:
+  /institutional/campaign/{campaign_code}/individual:
+    parameters:
+    - name: campaign_code
+      in: path
+      description: MyOme campaign code
+      required: true
+      schema:
+        type: string
+      example:
+      - LONGEVITY
+    post:
+      operationId: myome.api.endpoints.institutional.campaign.individual.individual_post
+      security:
+      - jwt: []
+      summary: Add individual to campaign (institutional)
+      requestBody:
+        $ref: '#/components/requestBodies/InstitutionalCampaignIndividualPost'
+      tags:
+      - Institutional Interface
+      responses:
+        2XX:
+          $ref: '#/components/responses/StructuredSuccess'
+        4XX:
+          $ref: '#/components/responses/StructuredError'
+  /institutional/partner-requisition:
+    post:
+      operationId: myome.api.endpoints.institutional.requisition.partner_requisition_post
+      security:
+      - jwt: []
+      summary: Create requisition with a custom schema
+      description: Requisition creation endpoint for partner-specific payload schemata.
+      parameters:
+      - name: id
+        in: query
+        required: false
+        description: Partner order identifier.
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '201':
+          $ref: '#/components/responses/RequisitionResponse'
+        '400':
+          $ref: '#/components/responses/StructuredError'
+        '401':
+          $ref: '#/components/responses/StructuredError'
+        '404':
+          $ref: '#/components/responses/StructuredError'
+      tags:
+      - Institutional Interface
+      x-private: false
+components:
+  schemas:
+    ExternalOrderStatus:
+      type: string
+      enum:
+      - SUBMITTED
+      - APPROVED
+      - DENIED
+      - AWAITING_SAMPLE
+      - ANALYZING
+      - REFERRAL_LAB_LD_REVIEW
+      - CLINICIAN_REVIEW
+      - COMPLETED
+      - CANCELED
+      - FAILED
+    ClinicianReviewStatus:
+      type: string
+      enum:
+      - PENDING
+      - IN_REVIEW
+      - COMPLETED
+      - INELIGIBLE
+    CaseRequisition:
+      type: object
+      properties:
+        requisition_id:
+          allOf:
+          - $ref: '#/components/schemas/RequisitionId'
+        name:
+          allOf:
+          - $ref: '#/components/schemas/Name'
+        individual_id:
+          allOf:
+          - $ref: '#/components/schemas/IndividualId'
+        sample_received_at:
+          allOf:
+          - $ref: '#/components/schemas/YMDDate'
+        relationship:
+          allOf:
+          - $ref: '#/components/schemas/BiologicalRelationshipWithReverse'
+        is_primary_requisition:
+          type:
+          - boolean
+          - 'null'
+        orders:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/RequisitionOrderDetails'
+    ProductId:
+      type: string
+      description: A reference to an ordered product.
+      pattern: ^PR-?\d+$
+      examples:
+      - PR-0123456
+      - PR0123456
+    BiologicalSex:
+      description: Sex assigned at birth
+      type: string
+      enum:
+      - FEMALE
+      - MALE
+      - OTHER
+    Demographics:
+      type: object
+      title: Demographics
+      properties:
+        dob:
+          title: Date of Birth
+          description: mm/dd/yyyy
+          $ref: '#/components/schemas/Date'
+        sex:
+          title: Sex
+          $ref: '#/components/schemas/BiologicalSex'
+        gender:
+          $ref: '#/components/schemas/Gender'
+    CLIANumber:
+      type: string
+      pattern: ^\d{2}D[A-Za-z0-9]{7}$
+      examples:
+      - 12D3ad2R7q
+      - 34D31532S5
+    ConsentUri:
+      type: string
+      pattern: ^myome:consent:[A-Z_0-9]+(-\d+\.\d+\.\d+)?(-dev\.\d+)?$
+      examples:
+      - myome:consent:GENERAL-0.1.4
+      - myome:consent:PR2008-0.0.1
+      - myome:consent:DNAVISIT
+      - myome:consent:PRODUCT_NOTIFICATIONS-0.0.1
+      - myome:consent:PR5004-0.0.1-dev.0
+      - myome:consent:HIE_ACCESS__TREATMENT
+      - myome:consent:CONTACT__RESEARCH_OPPORTUNITIES
+      - myome:consent:CONTACT__TRANSACTIONAL_SMS
+      - myome:consent:CONTACT__MARKETING
+    Date:
+      type: string
+      format: date
+    YMDDate:
+      type: string
+      pattern: '[12]\d{3}-[01]\d-[0123]\d'
+      example: '1999-12-31'
+    ClinicianId:
+      title: Clinician ID
+      type: string
+      pattern: ^CN-?([a-z]{3,5}-?)?\d+$
+      examples:
+      - CN-0123456
+      - CN-dev-0123456
+      - CN0123456
+      - CNdev0123456
+    Gender:
+      description: "Cultural/social gender; unconstrained string\nSources:\n  * https://www.csusm.edu/ipa/surveys/inclusive-language-guidelines.html"
+      type: string
+      enum:
+      - CISGENDER_MAN
+      - CISGENDER_WOMAN
+      - NO_RESPONSE
+      - NON_BINARY
+      - TRANSGENDER_MAN
+      - TRANSGENDER_WOMAN
+    DnavisitServiceRequest:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: DnavisitServiceRequest
+      type: object
+      properties:
+        requisition_id:
+          $ref: '#/components/schemas/RequisitionId'
+        appointment_url:
+          type: string
+          format: uri
+          description: Link to a scheduled genetic counseling appointment
+        appointment_date:
+          $ref: '#/components/schemas/UTCTimestamp'
+        access_code:
+          type: string
+          description: Access code required to schedule new genetic counseling appointments
+        external_status:
+          type: string
+        service_type:
+          $ref: '#/components/schemas/DNAVisitServiceType'
+        requested_on:
+          $ref: '#/components/schemas/Date'
+        completed_on:
+          $ref: '#/components/schemas/Date'
+        dnavisit_order_id:
+          type: string
+      additionalProperties: false
+    IndividualId:
+      type: string
+      pattern: ^IN-?([a-z]{3,5}-?)?\d+$
+      examples:
+      - IN-dev-123456
+      - IN-123456
+      - INdev123456
+      - IN123456
+    ContactInfoOptional:
+      type: object
+      additionalProperties: false
+      properties:
+        address:
+          title: Address
+          oneOf:
+          - $ref: '#/components/schemas/AddressOptional'
+          - type: 'null'
+        email:
+          anyOf:
+          - $ref: '#/components/schemas/EmailAddress'
+          - const: ''
+          - type: 'null'
+        phone:
+          type:
+          - string
+          - 'null'
+          title: Phone Number
+        fax:
+          type:
+          - string
+          - 'null'
+          title: Fax Number
+    RequisitionOrderDetails:
+      type: object
+      properties:
+        order_id:
+          allOf:
+          - $ref: '#/components/schemas/OrderId'
+        product_id:
+          allOf:
+          - $ref: '#/components/schemas/ProductId'
+        product_name:
+          type:
+          - string
+          - 'null'
+        report_type:
+          allOf:
+          - $ref: '#/components/schemas/ReportType'
+        created_at:
+          allOf:
+          - $ref: '#/components/schemas/YMDDate'
+        reported_at:
+          allOf:
+          - $ref: '#/components/schemas/YMDDate'
+        status:
+          allOf:
+          - $ref: '#/components/schemas/ExternalOrderStatus'
+        results:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/ToplineFinding'
+    PGxImpactToplineFinding:
+      type: string
+      enum:
+      - MINIMAL_IMPACT
+      - ALTERED_DOSE
+      - MAJOR_IMPACT
+      - CONTRAINDICATED
+    PRSToplineFinding:
+      type: string
+      enum:
+      - AVERAGE_RISK
+      - ELEVATED_RISK
+      - HIGH_RISK
+      - LOW_RISK
+      - INTERMEDIATE_RISK
+      - BORDERLINE_RISK
+      - NOT_ANALYZED
+      - INCREASED_RISK
+      - NOT_INCREASED_RISK
+    UTCTimestamp:
+      description: UTC timestamp in ISO-8601 format. e.g., `2018-11-13T20:20:39+00:00`
+      type: string
+      format: date-time
+      pattern: ^[12]\d{3}-[01]\d-[0123]\dT\d{2}:\d{2}:\d{2}\.?\d*[+-Z](\d{2}:\d{2})?$
+      examples:
+      - '2018-11-13T20:20:39+00:00'
+      - '2018-11-13T20:20:39.0123Z'
+    BiologicalRelationshipWithReverse:
+      description: Relationship to an individual including reverse relationships
+      type: string
+      enum:
+      - PARENT
+      - CHILD
+      - SIBLING
+    ClinicalSummaryLetter:
+      type: object
+      description: '"Clinical summary letter provided by physician of record. Only relevant if physician of record services were requested."
+
+        '
+      properties:
+        completed_on:
+          allOf:
+          - $ref: '#/components/schemas/YMDDate'
+        description:
+          type:
+          - string
+          - 'null'
+        mimetype:
+          type:
+          - string
+          - 'null'
+        uri:
+          type:
+          - string
+          - 'null'
+    RareDiseaseToplineFinding:
+      type: string
+      enum:
+      - POSITIVE
+      - NEGATIVE
+      - UNCERTAIN
+    ProviderLicenseStatus:
+      type: string
+      enum:
+      - UNVERIFIED
+      - VERIFIED
+      - REVOKED
+      - DENIED
+    UUID:
+      description: Python UUID
+      type: string
+      pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}
+      examples:
+      - 90cd1561-bcc4-46bc-9ba2-19bb2521a28e
+      - c2a78d62-969f-455e-8b8f-bd5f0efd9273
+    Institution:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Institution
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          type: string
+          examples:
+          - External Lab
+        auth_sub:
+          $ref: '#/components/schemas/UUID'
+        contact_info:
+          type: array
+          items:
+            type: object
+            properties:
+              phone:
+                $ref: '#/components/schemas/PhoneNumber'
+          maxItems: 1
+        clia_numbers:
+          type: array
+          items:
+            $ref: '#/components/schemas/CLIANumber'
+      additionalProperties: false
+    FVTRequisitionDetails:
+      type: object
+      additionalProperties: false
+      properties:
+        source_requisition:
+          type:
+          - string
+          - 'null'
+          description: 'The identifier of the source requisition for FVT orders.
+
+            '
+        source_relationship:
+          type:
+          - string
+          - 'null'
+          description: 'The relationship of the source requisition to the current requisition.
+
+            '
+        variants:
+          type:
+          - array
+          - 'null'
+          items:
+            type: object
+            properties:
+              enum:
+                type:
+                - string
+                - 'null'
+                description: 'The enum value of the variant.
+
+                  '
+              title:
+                type:
+                - string
+                - 'null'
+                description: 'The display value of the variant.
+
+                  '
+    Name:
+      type: object
+      title: Name
+      additionalProperties: false
+      properties:
+        first:
+          type: string
+          title: First
+        middle:
+          type:
+          - string
+          - 'null'
+          title: Middle
+        last:
+          type: string
+          title: Last
+        credentials:
+          type:
+          - string
+          - 'null'
+          title: Credentials
+          description: e.g. M.D., Ph.D.
+      examples:
+      - first: Zaphod
+        middle: Vogon
+        last: Beeblebrox
+        credentials: M.D., Ph.D.
+    PhoneNumber:
+      type: string
+      pattern: ^\+?\d{1,4}?[-\s]?\(?\d{1,3}?\)?[-\s]?\d{1,4}[-\s]?\d{1,9}?$
+      examples:
+      - '+919367788755'
+      - '8989829304'
+      - '+16308520397'
+      - 786-307-3615
+      - +1-555-555-5555
+    MonogenicToplineFinding:
+      type: string
+      enum:
+      - POSITIVE
+      - NEGATIVE
+    Clinician:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Clinician
+      type: object
+      required:
+      - name
+      - npi
+      properties:
+        clinician_id:
+          $ref: '#/components/schemas/ClinicianId'
+        name:
+          $ref: '#/components/schemas/Name'
+        contact_info:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContactInfoOptional'
+          maxItems: 1
+        clinic_name:
+          type: string
+        npi:
+          $ref: '#/components/schemas/NPI'
+        clinics:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - name
+            - clinic_id
+            properties:
+              name:
+                type: string
+              clinic_id:
+                $ref: '#/components/schemas/ClinicId'
+              roles:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrganizationProviderRole'
+              can_order:
+                type: boolean
+                description: Provider can place a new order at this organization
+        communication_preferences:
+          type: object
+        campaigns:
+          type: array
+          items:
+            $ref: '#/components/schemas/Campaign'
+        license_status:
+          $ref: '#/components/schemas/ProviderLicenseStatus'
+        is_active:
+          type: boolean
+          description: Whether the clinician is active (not archived and in_use).
+      additionalProperties: false
+    ToplineFinding:
+      properties:
+        finding:
+          title: Finding
+          anyOf:
+          - $ref: '#/components/schemas/MonogenicToplineFinding'
+          - $ref: '#/components/schemas/PRSToplineFinding'
+          - $ref: '#/components/schemas/PGxImpactToplineFinding'
+          - $ref: '#/components/schemas/RareDiseaseToplineFinding'
+          type: string
+        text:
+          title: Text
+          type: string
+      required:
+      - finding
+      - text
+    NPI:
+      type: string
+      title: NPI
+      pattern: ^\d{9,10}$
+      examples:
+      - 012345678
+      - 0123456789
+    OrderId:
+      type: string
+      pattern: ^OR-?([a-z]{3,5}-?)?\d+$
+      examples:
+      - OR-0123456
+      - OR-dev-0123456
+      - OR0123456
+      - ORdev0123456
+    Campaign:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Campaign
+      type: object
+      required:
+      - campaign_code
+      - name
+      - is_active
+      properties:
+        name:
+          type: string
+          examples:
+          - Example Partnership
+        campaign_code:
+          type: string
+          examples:
+          - EXAMPLE
+        description:
+          type: string
+          examples:
+          - by Example Partner
+        is_active:
+          type: boolean
+      additionalProperties: false
+    ClinicId:
+      type: string
+      pattern: ^CL-?([a-z]{3,5}-?)?\d+$
+      examples:
+      - CL-0123456
+      - CL-dev-123456
+      - CL0123456
+      - CLdev123456
+    RequisitionId:
+      type: string
+      pattern: ^RQ-?([a-z]{3,5}-?)?\d+$
+      examples:
+      - RQ-0123456
+      - RQ-dev-0123456
+      - RQ0123456
+      - RQdev0123456
+    EmailAddress:
+      type: string
+      title: Email Address
+      format: email
+    ReportType:
+      type: string
+      enum:
+      - BASELINE_RISK
+      - MONOGENIC
+      - NDD_CNA
+      - RARE_DISEASE
+      - PGX
+      - PRS
+      - FAMILY_VARIANT_TESTING
+      - DATA_ONLY
+      - CLINICAL_RISK_ONLY
+      - CANCELED
+    DNAVisitServiceType:
+      description: Pre- and post-test service types offered by DNAVisit
+      type: string
+      enum:
+      - PRE_TEST_REVIEW_ONLY
+      - PRE_TEST_COUNSELING
+      - POST_TEST_REVIEW_ONLY
+      - POST_TEST_COUNSELING
+    OrganizationProviderRole:
+      type: string
+      enum:
+      - ADMIN
+      - DELEGATE
+      - CLINICIAN
+    RerequisitionType:
+      type: string
+      enum:
+      - NEW_ORDER
+      - REANALYSIS
+    SubjectOptionalAddress:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: SubjectOptionalAddress
+      type: object
+      properties:
+        name:
+          oneOf:
+          - $ref: '#/components/schemas/Name'
+          - type: 'null'
+        contact_info:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContactInfoOptional'
+        demographics:
+          oneOf:
+          - $ref: '#/components/schemas/Demographics'
+          - type: 'null'
+    AddressOptional:
+      type: object
+      additionalProperties: false
+      properties:
+        street_address:
+          type:
+          - string
+          - 'null'
+          title: Street Address
+          description: Number and street
+        street_address_2:
+          type:
+          - string
+          - 'null'
+          title: Street Address Line 2
+        city:
+          type:
+          - string
+          - 'null'
+          title: City
+        region:
+          type:
+          - string
+          - 'null'
+          title: Region
+          description: State, province, or other country-specific region
+        postal_code:
+          type:
+          - string
+          - 'null'
+          title: Postal Code
+          description: Country-specific code for geographic districts
+        country:
+          type:
+          - string
+          - 'null'
+          title: Country
+          description: Country name or abbreviation
+      examples:
+      - street_address: 930 Brittan Ave
+        city: San Carlos
+        region: CA
+        postal_code: '94070'
+        country: US
+  requestBodies:
+    InstitutionalCampaignIndividualPost:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            properties:
+              first:
+                type: string
+              last:
+                type: string
+              email:
+                type: string
+              phone:
+                type: string
+              street_address_1:
+                type: string
+              street_address_2:
+                type: string
+              city:
+                type: string
+              region:
+                type: string
+              postal_code:
+                type: string
+              dob:
+                type: string
+              sex:
+                type: string
+                enum:
+                - MALE
+                - FEMALE
+              external_member_id:
+                type: string
+              external_group_id:
+                type: string
+              removed:
+                type:
+                - boolean
+                - 'null'
+            required:
+            - first
+            - last
+            - email
+            - dob
+          example:
+          - first: John
+            last: Doe
+            email: john.doe@example.com
+            phone: 123-456-7890
+            street_address_1: 123 Main St
+            street_address_2: Apt 1
+            city: Anytown
+            region: CA
+            postal_code: '12345'
+            dob: '1990-01-01'
+            sex: MALE
+            external_member_id: '1234567890'
+            external_group_id: '1234567890'
+  responses:
+    StructuredError:
+      description: Generic structured error message
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            required:
+            - title
+            - detail
+            properties:
+              title:
+                type: string
+              detail:
+                type: string
+              code:
+                type:
+                - string
+                - 'null'
+                description: The type of error that occurred
+              errors:
+                type:
+                - object
+                - 'null'
+                additionalProperties: true
+                description: Dictionary of field names and error messages
+              extra:
+                oneOf:
+                - type: object
+                  additionalProperties: true
+                - type: string
+          examples:
+            simple_error:
+              value:
+                detail: There was an error validating the request
+                title: Validation error
+            flat_field_errors:
+              value:
+                code: validation_error
+                detail: Validation error
+                title: Validation error
+                errors:
+                  field1: field is required
+            nested_field_errors:
+              value:
+                code: validation_error
+                detail: Validation error
+                title: Validation error
+                errors:
+                  field1: field is required
+                  field2:
+                    field3: field is invalid
+            no_field_errors:
+              value:
+                code: validation_error
+                detail: Validation error
+                title: Validation error
+    StructuredSuccess:
+      description: Generic structured success message
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            required:
+            - success
+            properties:
+              success:
+                type: string
+          example:
+          - success: The operation was successful
+    RequisitionResponse:
+      description: Clinician, consent(s), order(s), and subject information associated with a given requisition ID. Status updates are provided for each individual order.
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            required:
+            - requisition_id
+            - orders
+            - consents_granted
+            - subject
+            properties:
+              requisition_id:
+                $ref: '#/components/schemas/RequisitionId'
+              provider_verification_status:
+                description: 'Verification state of the ordering provider for requisitions
+
+                  created with an embedded `ordering_provider`. `VERIFIED` means the
+
+                  provider was matched/verified and the order proceeds normally.
+
+                  `PENDING` means the provider could not be verified automatically;
+
+                  the requisition is accepted (HTTP 202) and held for manual review.
+
+                  Absent for requisitions that do not use an embedded ordering
+
+                  provider.
+
+                  '
+                type: string
+                enum:
+                - VERIFIED
+                - PENDING
+              clinicians:
+                type:
+                - array
+                - 'null'
+                items:
+                  $ref: '#/components/schemas/Clinician'
+              collated_report:
+                type:
+                - object
+                - 'null'
+                description: 'MyOme report consisting of a cover page, report for each order, and a
+
+                  clinical summary letter. Currently only available for patient initiated
+
+                  test requests.
+
+                  '
+                properties:
+                  uri:
+                    type:
+                    - string
+                    - 'null'
+                  description:
+                    type:
+                    - string
+                    - 'null'
+                  mimetype:
+                    type:
+                    - string
+                    - 'null'
+              clinical_summary_letter:
+                allOf:
+                - $ref: '#/components/schemas/ClinicalSummaryLetter'
+                description: 'Clinical summary letter for the requisition if available. Absent otherwise.
+
+                  '
+              genetic_counseling:
+                allOf:
+                - $ref: '#/components/schemas/DnavisitServiceRequest'
+                description: 'Most recent post-test-genetic counseling request for the requisition. Contains
+
+                  the genetic counseling scheduling link when available. Absent when no post-test
+
+                  counseling was requested.
+
+
+                  `appointment_url` and `access_code` are used independently, not combined into a
+
+                  single URL: open `appointment_url` directly (do not append the code as a query
+
+                  param) to view or manage the appointment, and present `access_code` to the
+
+                  patient to enter on DNAvisit''s scheduling site.
+
+                  '
+              consents_granted:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConsentUri'
+              orders:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RequisitionOrderDetails'
+              subject:
+                $ref: '#/components/schemas/SubjectOptionalAddress'
+              submitted_at:
+                allOf:
+                - $ref: '#/components/schemas/UTCTimestamp'
+              referring_lab:
+                allOf:
+                - $ref: '#/components/schemas/Institution'
+              institution:
+                allOf:
+                - $ref: '#/components/schemas/Institution'
+              case_requisitions:
+                type:
+                - array
+                - 'null'
+                description: 'A list of any connected requisitions for duo and trio products
+
+                  '
+                items:
+                  $ref: '#/components/schemas/CaseRequisition'
+              fvt:
+                allOf:
+                - $ref: '#/components/schemas/FVTRequisitionDetails'
+              external_status:
+                allOf:
+                - $ref: '#/components/schemas/ExternalOrderStatus'
+              clinician_review_status:
+                allOf:
+                - $ref: '#/components/schemas/ClinicianReviewStatus'
+              order_date:
+                allOf:
+                - $ref: '#/components/schemas/YMDDate'
+              rerequisition_type:
+                allOf:
+                - $ref: '#/components/schemas/RerequisitionType'
+          example:
+          - requisition_id: RQ2000042
+            clinicians:
+            - clinic_name: Acme Health
+              contact_info:
+              - address:
+                  city: San Francisco
+                  country: US
+                  postal_code: '12345'
+                  region: CA
+                  street_address: 123 Example Ln
+                email: clinician@example.com
+                phone: +1-415-555-1212
+              name:
+                first: Zaphod
+                last: Beeblebrox
+                credentials: M.D.
+              npi: 012345678
+              clinics:
+              - name: Acme Health
+                clinic_id: CL12345
+                roles:
+                - CLINICIAN
+              campaigns:
+              - campaign_code: ANVIL
+                name: Anvil
+                description: by Acme Health
+                is_active: true
+            consents_granted:
+            - myome:consent:GENERAL-0.0.1
+            - myome:consent:PR2019-0.0.1
+            orders:
+            - order_id: OR2000308
+              product_id: PR-2019
+              product_name: MyOme Personal Genome, Proactive Health, 81 Genes
+              report_type: MONOGENIC
+              status: ANALYZING
+              results:
+              - finding: POSITIVE
+                text: A pathogenic variant was identified in the BRCA2 gene.
+              created_at: '2023-05-16T04:59:01.169271+00:00'
+              reported_at: '2022-11-12T22:07:34.557423Z'
+            referring_lab:
+              name: Acme Referring Lab
+              clia_numbers:
+              - 19D0000000
+              contact_info:
+              - phone: 555-123-4567
+            subject:
+              demographics:
+                sex: MALE
+                dob: '1999-01-01'
+              contact_info:
+              - address:
+                  city: San Francisco
+                  country: US
+                  postal_code: '98765'
+                  region: CA
+                  street_address: 456 Open Rd
+                email: patient@example.com
+                phone: +1-415-555-9090
+              name:
+                first: Ford
+                last: Prefect
+            submitted_at: '2023-05-15T04:59:01.169271+00:00'
+            external_status: COMPLETED
+            clinician_review_status: COMPLETED
+            clinical_summary_letter:
+              completed_on: '2026-01-21'
+              description: post_test_letter
+              mimetype: application/pdf
+              uri: https://example.myome.com/clinical-summary-letter.pdf
+            genetic_counseling:
+              requisition_id: RQ2000042
+              appointment_url: https://appointment.dnavisit.com/example
+              access_code: ABC123
+              external_status: COMPLETED
+              service_type: POST_TEST_COUNSELING
+              requested_on: '2026-01-15'
+              completed_on: '2026-01-21'
+              dnavisit_order_id: DNAV-123
+            fvt:
+              source_requisition: RQ123
+              source_relationship: PARENT
+              variants:
+              - value: '1'
+                display: BTD NM_007294.4(BRCA1):c.5585A>G NP_009225.1:p.His1862Arg (Pathogenic)
+  securitySchemes:
+    jwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'JSON Web Token (JWT) obtained from Keycloak.
+
+        '
+      x-bearerInfoFunc: myome.api.support.auth.validate_kc_token

@@ -1,0 +1,203 @@
+openapi: 3.2.0
+info:
+  title: MyOme Resources API
+  version: 2.51.0
+  contact:
+    email: support@myome.com
+  description: "The MyOme API enables clients to:\n- List sequencing and analysis products available to the client.\n- Submit requisitions for sequencing for new samples.\n- Check status of requisitions and orders.\n- Retrieve order results, including sequencing data, structured interpretation\n  data, and PDF reports.\n\n# API Overview\n\n## Terminology\n\n- A *Product* is a specific assay or intepretation service. Product\n  identifiers begin with `PR`.\n- A *Requisition* is a request for one or more Products for a single sample.\n  Requisition identifiers begin with `RQ`.\n- An *Order* is\n  a request for a specific service for a specific sample.  An Order is created for each\n  Product requested in a Requisition Order identifiers\n  begin with `OR`.   \n- A *Report* is the end result of a successful Order. An Order typically has one\n  associated Report, but may have zero in the case of failure or multiple in\n  the case of amended or corrected reports.\n\n## Typical flow\n\n- Client obtains JWT from auth.myome.com. All of the following interactions with the MyOme API include\n  this JWT for authorization (details below).\n- Client sends a requisition to MyOme with product ID(s). Each product will generate a distinct order attached to that requisition. \n  The MyOme API returns a MyOme requisition id.\n- Client fetches information about the Requisition. The response includes an order id for each Order placed.\n- Client fetches information about each Order. The response includes the status and, if\n  available, links to results.\n\n## Order Statuses\n\nOrder status:\n- SUBMITTED - Order has been received\n- DENIED - Denied by physician of record (only relevant for patient-initiated testing requests)\n- CANCELED - Order was canceled\n- AWAITING_SAMPLE - Sample has not arrived yet\n- ANALYZING - Order is being processed\n- CLINICIAN_REVIEW - Order results sent to clinician and waiting for review\n- COMPLETED - Order has been completed\n\n# API Conventions\n\n## Authorization\n\nAll endpoints require authorization using JSON Web Tokens (JWT) using the header: `Authorization: Bearer <token>`. `<token>` is a JWT generated using Keycloak with partner-specific credientials. \nNote that the token refreshes every hour. MyOme will provide credentials to partners via secure email during account creation. Those credentials should be kept confidential.\n\n## HTTP Status Codes\n\nThe MyOme API uses the following standard HTTP status codes to indicate the success or failure\nof an API request.\n\n    200 Success\n    201 Created\n    204 No Content\n    400 Bad Request\n    401 Unauthorized\n    403 Forbidden\n    404 Resource Not Found\n    415 Unsupported Media Type\n    500 Internal Server Error\n\nA successful create request returns 201 Created along with the created object identifier. A successful\nupdate request returns 200 OK along with the updated object. An unsuccessful API request returns\na relevant HTTP status code along with an error response."
+servers:
+- url: /0/
+  description: local development server
+- url: https://api.sbx.myome.com/0/
+  description: External sandbox instance for partner testing/development
+- url: https://api.myome.com/0/
+  description: Production API
+tags:
+- name: Resources
+  description: Reference data—orderable products and consent types (general and product-specific).
+paths:
+  /consent:
+    get:
+      operationId: myome.api.endpoints.consent.consent_get
+      security: []
+      summary: List consent types
+      description: Returns available consent types (general and, when requested via query, product-specific). Used to know which consent URIs to send when granting consent.
+      tags:
+      - Resources
+      responses:
+        '200':
+          $ref: '#/components/responses/ConsentListResponse'
+        '401':
+          $ref: '#/components/responses/StructuredError'
+      parameters:
+      - name: consents
+        in: query
+        required: true
+        example:
+        - DNAVISIT
+        - PR-2019
+        schema:
+          type: array
+          items:
+            type: string
+            pattern: '[A-Z_0-9]+(-\d+\.\d+\.\d+)?$'
+  /product:
+    get:
+      operationId: myome.api.endpoints.product.product_get
+      security:
+      - jwt: []
+      tags:
+      - Resources
+      summary: List orderable products
+      description: 'Returns the list of products that can be ordered (for use when creating requisitions).
+
+        '
+      responses:
+        '200':
+          $ref: '#/components/responses/ProductListResponse'
+        '401':
+          $ref: '#/components/responses/StructuredError'
+components:
+  responses:
+    ProductListResponse:
+      description: List of products
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Product'
+          example:
+          - - description: MyOme product for analysis of ACMG Secondary Findings Version 3.
+              name: MyOme Personal Genome, Proactive Health, 81 Genes
+              product_id: PR-2019
+    StructuredError:
+      description: Generic structured error message
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            required:
+            - title
+            - detail
+            properties:
+              title:
+                type: string
+              detail:
+                type: string
+              code:
+                type:
+                - string
+                - 'null'
+                description: The type of error that occurred
+              errors:
+                type:
+                - object
+                - 'null'
+                additionalProperties: true
+                description: Dictionary of field names and error messages
+              extra:
+                oneOf:
+                - type: object
+                  additionalProperties: true
+                - type: string
+          examples:
+            simple_error:
+              value:
+                detail: There was an error validating the request
+                title: Validation error
+            flat_field_errors:
+              value:
+                code: validation_error
+                detail: Validation error
+                title: Validation error
+                errors:
+                  field1: field is required
+            nested_field_errors:
+              value:
+                code: validation_error
+                detail: Validation error
+                title: Validation error
+                errors:
+                  field1: field is required
+                  field2:
+                    field3: field is invalid
+            no_field_errors:
+              value:
+                code: validation_error
+                detail: Validation error
+                title: Validation error
+    ConsentListResponse:
+      description: List of general and product specific consents
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              additionalProperties: false
+              properties:
+                consent_uri:
+                  allOf:
+                  - $ref: '#/components/schemas/ConsentUri'
+                name:
+                  type:
+                  - string
+                  - 'null'
+                  description: Consent name
+                consent_text:
+                  type:
+                  - string
+                  - 'null'
+          example:
+          - - consent_uri: myome:consent:GENERAL-0.0.1
+              name: MyOme General Consent
+              consent_text: Example consent text
+  schemas:
+    ProductId:
+      type: string
+      description: A reference to an ordered product.
+      pattern: ^PR-?\d+$
+      examples:
+      - PR-0123456
+      - PR0123456
+    Product:
+      type: object
+      required:
+      - product_id
+      properties:
+        description:
+          type:
+          - string
+          - 'null'
+          description: Description of analysis product
+        name:
+          type:
+          - string
+          - 'null'
+          description: Short analysis product name
+        product_id:
+          $ref: '#/components/schemas/ProductId'
+    ConsentUri:
+      type: string
+      pattern: ^myome:consent:[A-Z_0-9]+(-\d+\.\d+\.\d+)?(-dev\.\d+)?$
+      examples:
+      - myome:consent:GENERAL-0.1.4
+      - myome:consent:PR2008-0.0.1
+      - myome:consent:DNAVISIT
+      - myome:consent:PRODUCT_NOTIFICATIONS-0.0.1
+      - myome:consent:PR5004-0.0.1-dev.0
+      - myome:consent:HIE_ACCESS__TREATMENT
+      - myome:consent:CONTACT__RESEARCH_OPPORTUNITIES
+      - myome:consent:CONTACT__TRANSACTIONAL_SMS
+      - myome:consent:CONTACT__MARKETING
+  securitySchemes:
+    jwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'JSON Web Token (JWT) obtained from Keycloak.
+
+        '
+      x-bearerInfoFunc: myome.api.support.auth.validate_kc_token

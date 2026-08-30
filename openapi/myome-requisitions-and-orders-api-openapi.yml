@@ -1,0 +1,2874 @@
+openapi: 3.2.0
+info:
+  title: MyOme Requisitions and Orders API
+  version: 2.51.0
+  contact:
+    email: support@myome.com
+  description: "The MyOme API enables clients to:\n- List sequencing and analysis products available to the client.\n- Submit requisitions for sequencing for new samples.\n- Check status of requisitions and orders.\n- Retrieve order results, including sequencing data, structured interpretation\n  data, and PDF reports.\n\n# API Overview\n\n## Terminology\n\n- A *Product* is a specific assay or intepretation service. Product\n  identifiers begin with `PR`.\n- A *Requisition* is a request for one or more Products for a single sample.\n  Requisition identifiers begin with `RQ`.\n- An *Order* is\n  a request for a specific service for a specific sample.  An Order is created for each\n  Product requested in a Requisition Order identifiers\n  begin with `OR`.   \n- A *Report* is the end result of a successful Order. An Order typically has one\n  associated Report, but may have zero in the case of failure or multiple in\n  the case of amended or corrected reports.\n\n## Typical flow\n\n- Client obtains JWT from auth.myome.com. All of the following interactions with the MyOme API include\n  this JWT for authorization (details below).\n- Client sends a requisition to MyOme with product ID(s). Each product will generate a distinct order attached to that requisition. \n  The MyOme API returns a MyOme requisition id.\n- Client fetches information about the Requisition. The response includes an order id for each Order placed.\n- Client fetches information about each Order. The response includes the status and, if\n  available, links to results.\n\n## Order Statuses\n\nOrder status:\n- SUBMITTED - Order has been received\n- DENIED - Denied by physician of record (only relevant for patient-initiated testing requests)\n- CANCELED - Order was canceled\n- AWAITING_SAMPLE - Sample has not arrived yet\n- ANALYZING - Order is being processed\n- CLINICIAN_REVIEW - Order results sent to clinician and waiting for review\n- COMPLETED - Order has been completed\n\n# API Conventions\n\n## Authorization\n\nAll endpoints require authorization using JSON Web Tokens (JWT) using the header: `Authorization: Bearer <token>`. `<token>` is a JWT generated using Keycloak with partner-specific credientials. \nNote that the token refreshes every hour. MyOme will provide credentials to partners via secure email during account creation. Those credentials should be kept confidential.\n\n## HTTP Status Codes\n\nThe MyOme API uses the following standard HTTP status codes to indicate the success or failure\nof an API request.\n\n    200 Success\n    201 Created\n    204 No Content\n    400 Bad Request\n    401 Unauthorized\n    403 Forbidden\n    404 Resource Not Found\n    415 Unsupported Media Type\n    500 Internal Server Error\n\nA successful create request returns 201 Created along with the created object identifier. A successful\nupdate request returns 200 OK along with the updated object. An unsuccessful API request returns\na relevant HTTP status code along with an error response."
+servers:
+- url: /0/
+  description: local development server
+- url: https://api.sbx.myome.com/0/
+  description: External sandbox instance for partner testing/development
+- url: https://api.myome.com/0/
+  description: Production API
+tags:
+- name: Requisitions and Orders
+  description: Submit, list, and fetch requisitions and orders; get order results; list re-requisitionable products.
+paths:
+  /institutional/partner-requisition:
+    post:
+      operationId: myome.api.endpoints.institutional.requisition.partner_requisition_post
+      security:
+      - jwt: []
+      summary: Create requisition with a custom schema
+      description: Requisition creation endpoint for partner-specific payload schemata.
+      parameters:
+      - name: id
+        in: query
+        required: false
+        description: Partner order identifier.
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '201':
+          $ref: '#/components/responses/RequisitionResponse'
+        '400':
+          $ref: '#/components/responses/StructuredError'
+        '401':
+          $ref: '#/components/responses/StructuredError'
+        '404':
+          $ref: '#/components/responses/StructuredError'
+      tags:
+      - Requisitions and Orders
+      x-private: false
+  /order/{order_id}:
+    parameters:
+    - name: order_id
+      in: path
+      description: MyOme order id
+      required: true
+      example: OR123456
+      schema:
+        $ref: '#/components/schemas/OrderId'
+    get:
+      operationId: myome.api.endpoints.order.order_get
+      security:
+      - jwt: []
+      tags:
+      - Requisitions and Orders
+      summary: Get order status and results (caller's context)
+      description: 'Returns order status and, when complete, result access (e.g. pre-signed URLs) for the given order_id.
+
+        Orders are created via POST `/requisition`; this endpoint is for status and results lookup.
+
+        '
+      responses:
+        '200':
+          $ref: '#/components/responses/OrderGetResponse'
+        '401':
+          $ref: '#/components/responses/StructuredError'
+  /requisition/{requisition_id}:
+    parameters:
+    - name: requisition_id
+      in: path
+      description: MyOme requisition id returned from submission
+      required: true
+      schema:
+        type: string
+        $ref: '#/components/schemas/RequisitionId'
+      example: RQ123456
+    get:
+      operationId: myome.api.endpoints.requisition.requisition_get
+      security:
+      - jwt: []
+      tags:
+      - Requisitions and Orders
+      summary: Get requisition by ID
+      description: 'Returns full requisition details for the given requisition_id. For order status and results only, use GET
+
+        `/order/{order_id}` instead.
+
+        '
+      responses:
+        '201':
+          $ref: '#/components/responses/RequisitionResponse'
+        '401':
+          $ref: '#/components/responses/StructuredError'
+  /requisition:
+    get:
+      operationId: myome.api.endpoints.requisition.requisition_list
+      security:
+      - jwt: []
+      summary: List requisitions (caller's context)
+      description: Returns a paginated, sortable list of open requisitions for the authenticated caller. Use POST to create a new requisition.
+      tags:
+      - Requisitions and Orders
+      responses:
+        '200':
+          $ref: '#/components/responses/RequisitionListResultsResponse'
+        '401':
+          $ref: '#/components/responses/StructuredError'
+      parameters:
+      - $ref: '#/components/parameters/PaginationPageNumber'
+      - $ref: '#/components/parameters/PaginationPageSize'
+      - name: sort_field
+        in: query
+        description: Field used to sort results
+        schema:
+          type: string
+          enum:
+          - clinician_id
+          - clinician_name
+          - external_mrn
+          - patient_id
+          - patient_name
+          - requisition_id
+          - result
+          - sample_received_at
+          - status
+          - submitted_at
+      - $ref: '#/components/parameters/SortOrder'
+      - $ref: '#/components/parameters/ClinicianId'
+      - $ref: '#/components/parameters/ClinicianName'
+      - $ref: '#/components/parameters/ExternalMRN'
+      - $ref: '#/components/parameters/ExternalOrderStatus'
+      - $ref: '#/components/parameters/OrderSubmittedAt'
+      - $ref: '#/components/parameters/PatientId'
+      - $ref: '#/components/parameters/PatientName'
+      - $ref: '#/components/parameters/RequisitionId'
+      - $ref: '#/components/parameters/RequisitionToplineFindings'
+      - $ref: '#/components/parameters/SampleReceivedAt'
+    post:
+      operationId: myome.api.endpoints.requisition.requisition_post
+      security:
+      - jwt: []
+      summary: Create or update a requisition
+      description: 'Submits a new requisition or updates an existing one. Returns a requisition ID for use with GET
+
+        `requisition/{requisition_id}` and related order endpoints.
+
+        '
+      requestBody:
+        $ref: '#/components/requestBodies/Requisition'
+      responses:
+        '201':
+          $ref: '#/components/responses/RequisitionResponse'
+        '202':
+          $ref: '#/components/responses/RequisitionResponse'
+        '401':
+          $ref: '#/components/responses/StructuredError'
+      tags:
+      - Requisitions and Orders
+components:
+  schemas:
+    ClinicianReviewStatus:
+      type: string
+      enum:
+      - PENDING
+      - IN_REVIEW
+      - COMPLETED
+      - INELIGIBLE
+    genetic_testing:
+      title: Genetic Testing Of The Woman
+      $ref: '#/components/schemas/BreastCancerGeneticTesting'
+    BodyMassIndex:
+      title: Body Mass Index (kg/m^2)
+      description: must be between 15 - 50
+      type: number
+      minimum: 15
+      maximum: 50
+      example: 22.5
+    age_at_diagnosis_of_ovarian_cancer:
+      title: Age At Diagnosis Of Ovarian Cancer
+      type: integer
+      minimum: 0
+      maximum: 99
+    ProductDataPR42023:
+      $ref: '#/components/schemas/ProductDataPR41027'
+    tyrer_cuzick_inputs:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Tyrer-Cuzick Risk Score Inputs
+      type: object
+      additionalProperties: false
+      properties:
+        age_at_menarche:
+          $ref: '#/components/schemas/age_at_menarche'
+        number_of_live_births:
+          $ref: '#/components/schemas/number_of_live_births'
+        age_at_first_birth:
+          $ref: '#/components/schemas/age_at_first_birth'
+        menopausal_status:
+          $ref: '#/components/schemas/menopausal_status'
+        age_at_menopause:
+          $ref: '#/components/schemas/age_at_menopause'
+        history_of_hyperplasia:
+          $ref: '#/components/schemas/history_of_hyperplasia'
+        history_of_atypical_hyperplasia:
+          $ref: '#/components/schemas/history_of_atypical_hyperplasia'
+        history_of_lcis:
+          $ref: '#/components/schemas/history_of_lcis'
+        history_of_ovarian_cancer:
+          $ref: '#/components/schemas/history_of_ovarian_cancer'
+        age_at_diagnosis_of_ovarian_cancer:
+          $ref: '#/components/schemas/age_at_diagnosis_of_ovarian_cancer'
+        hormone_replacement_therapy_use:
+          $ref: '#/components/schemas/hormone_replacement_therapy_use'
+        type_of_hormone_replacement_therapy_taken:
+          $ref: '#/components/schemas/type_of_hormone_replacement_therapy_taken'
+        length_of_time_taking_hormone_replacement_therapy:
+          $ref: '#/components/schemas/length_of_time_taking_hormone_replacement_therapy'
+        length_of_future_time_intended_to_take_hormone_replacement_therapy:
+          $ref: '#/components/schemas/length_of_future_time_intended_to_take_hormone_replacement_therapy'
+        length_of_time_since_last_taking_hormone_replacement_therapy:
+          $ref: '#/components/schemas/length_of_time_since_last_taking_hormone_replacement_therapy'
+        genetic_testing:
+          $ref: '#/components/schemas/genetic_testing'
+        genetic_testing_of_father:
+          $ref: '#/components/schemas/genetic_testing_of_father'
+        father_had_breast_cancer:
+          $ref: '#/components/schemas/father_had_breast_cancer'
+        brother_had_breast_cancer:
+          $ref: '#/components/schemas/brother_had_breast_cancer'
+        breast_density_measure:
+          $ref: '#/components/schemas/breast_density_measure'
+        breast_density_value_decimal:
+          $ref: '#/components/schemas/breast_density_value_decimal'
+        breast_density_value_birads:
+          $ref: '#/components/schemas/breast_density_value_birads'
+        polygenic_snp_score:
+          $ref: '#/components/schemas/polygenic_snp_score'
+        mother:
+          title: Mother
+          $ref: '#/components/schemas/TyrerCuzickFamilyHistory'
+        paternal_grandmother:
+          title: Paternal Grandmother
+          $ref: '#/components/schemas/TyrerCuzickFamilyHistory'
+        maternal_grandmother:
+          title: Maternal Grandmother
+          $ref: '#/components/schemas/TyrerCuzickFamilyHistory'
+        sisters:
+          title: Sisters
+          type: array
+          items:
+            type: object
+            properties:
+              personal_history:
+                title: Personal History
+                $ref: '#/components/schemas/TyrerCuzickFamilyHistory'
+              daughters:
+                title: Daughters (Nieces)
+                type: array
+                items:
+                  $ref: '#/components/schemas/TyrerCuzickFamilyHistory'
+        paternal_aunts:
+          title: Paternal Aunts
+          type: array
+          items:
+            type: object
+            properties:
+              personal_history:
+                title: Personal History
+                $ref: '#/components/schemas/TyrerCuzickFamilyHistory'
+              daughters:
+                title: Daughters (Cousins)
+                type: array
+                items:
+                  $ref: '#/components/schemas/TyrerCuzickFamilyHistory'
+        maternal_aunts:
+          title: Maternal Aunts
+          type: array
+          items:
+            type: object
+            properties:
+              personal_history:
+                title: Personal History
+                $ref: '#/components/schemas/TyrerCuzickFamilyHistory'
+              daughters:
+                title: Daughters (Cousins)
+                type: array
+                items:
+                  $ref: '#/components/schemas/TyrerCuzickFamilyHistory'
+        daughters:
+          title: Daughters
+          type: array
+          items:
+            $ref: '#/components/schemas/TyrerCuzickFamilyHistory'
+        brothers_daughters:
+          title: Brothers' Daughters With Breast Cancer
+          type: array
+          items:
+            $ref: '#/components/schemas/TyrerCuzickFamilyHistory'
+        paternal_half_sisters:
+          title: Paternal Half Sisters
+          type: array
+          items:
+            $ref: '#/components/schemas/TyrerCuzickFamilyHistory'
+        maternal_half_sisters:
+          title: Maternal Half Sisters
+          type: array
+          items:
+            $ref: '#/components/schemas/TyrerCuzickFamilyHistory'
+        paternal_uncles_daughters:
+          title: Paternal Uncles' Daughters (Cousins)
+          type: array
+          items:
+            $ref: '#/components/schemas/TyrerCuzickFamilyHistory'
+        maternal_uncles_daughters:
+          title: Maternal Uncles' Daughters (Cousins)
+          type: array
+          items:
+            $ref: '#/components/schemas/TyrerCuzickFamilyHistory'
+    ProductDataRareDisease:
+      type: object
+      additionalProperties: false
+      title: Inputs for Rare Disease
+      required:
+      - ndd_icd10_codes
+      - secondary_findings_opt_out
+      properties:
+        secondary_findings_opt_out:
+          title: Secondary Findings Opt Out
+          description: true for opt-out, false for opt-in
+          type: boolean
+        ndd_icd10_codes:
+          type: array
+          items:
+            type: string
+          title: ICD10 Codes
+          description: 'For Example: Q75.3 Macrocephaly'
+        clinical_phenotypes__other:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          title: Clinical Phenotypes
+    Date:
+      type: string
+      format: date
+    YMDDate:
+      type: string
+      pattern: '[12]\d{3}-[01]\d-[0123]\d'
+      example: '1999-12-31'
+    Subject:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Subject
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        contact_info:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContactInfo'
+        demographics:
+          $ref: '#/components/schemas/Demographics'
+    ProductDataPR4001Empower:
+      type: object
+      description: Additional data needed for product ID PR4001 with TC outputs and a data sample
+      required:
+      - tc_data
+      - data_files
+      - data_sample_info
+      properties:
+        tc_data:
+          type: object
+          description: Extra data required for computation. The content requirements depend on the selected product ID.
+          additionalProperties: false
+          required:
+          - five_year_risk
+          - lifetime_risk
+          - n_first_degree_affected
+          properties:
+            five_year_risk:
+              description: Five year risk score in decimal format.
+              type: number
+              minimum: 0
+              maximum: 1
+            lifetime_risk:
+              description: Lifetime year risk score in decimal format.
+              type: number
+              minimum: 0
+              maximum: 1
+            n_first_degree_affected:
+              description: Number of first degree
+              type: integer
+        data_files:
+          type: array
+          items:
+            type: object
+            $ref: '#/components/schemas/File'
+        data_sample_info:
+          type: object
+          additionalProperties: false
+          required:
+          - collection_date
+          - received_date
+          - sample_type
+          properties:
+            sample_type:
+              type: string
+              enum:
+              - DATA
+            collection_date:
+              type: string
+              pattern: '[12]\d{3}-[01]\d-[0123]\d'
+            received_date:
+              type: string
+              pattern: '[12]\d{3}-[01]\d-[0123]\d'
+      example:
+        tc_data:
+          five_year_risk: 0.012
+          lifetime_risk: 0.022
+          n_first_degree_affected: 2
+        data_files:
+        - uri: s3://bucket/R1.fastq
+          sha512: 3b7fc7cc370707c1df045c35342f3d64ea7076
+          description: R1 Fastq sequence
+          mimetype: application/x.seq-na-fastq;type=paired_end;direction=R1
+        - uri: s3://bucket/R2.fastq
+          sha512: 3b7fc7cc370707c1df045c35342f3d64ea7076
+          description: R2 Fastq sequence
+          mimetype: application/x.seq-na-fastq;type=paired_end;direction=R2
+        data_sample_info:
+          sample_type: DATA
+          collection_date: '2022-12-21'
+          received_date: '2022-12-23'
+    DnavisitServiceRequest:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: DnavisitServiceRequest
+      type: object
+      properties:
+        requisition_id:
+          $ref: '#/components/schemas/RequisitionId'
+        appointment_url:
+          type: string
+          format: uri
+          description: Link to a scheduled genetic counseling appointment
+        appointment_date:
+          $ref: '#/components/schemas/UTCTimestamp'
+        access_code:
+          type: string
+          description: Access code required to schedule new genetic counseling appointments
+        external_status:
+          type: string
+        service_type:
+          $ref: '#/components/schemas/DNAVisitServiceType'
+        requested_on:
+          $ref: '#/components/schemas/Date'
+        completed_on:
+          $ref: '#/components/schemas/Date'
+        dnavisit_order_id:
+          type: string
+      additionalProperties: false
+    IndividualId:
+      type: string
+      pattern: ^IN-?([a-z]{3,5}-?)?\d+$
+      examples:
+      - IN-dev-123456
+      - IN-123456
+      - INdev123456
+      - IN123456
+    ContactInfoOptional:
+      type: object
+      additionalProperties: false
+      properties:
+        address:
+          title: Address
+          oneOf:
+          - $ref: '#/components/schemas/AddressOptional'
+          - type: 'null'
+        email:
+          anyOf:
+          - $ref: '#/components/schemas/EmailAddress'
+          - const: ''
+          - type: 'null'
+        phone:
+          type:
+          - string
+          - 'null'
+          title: Phone Number
+        fax:
+          type:
+          - string
+          - 'null'
+          title: Fax Number
+    ProductDataPR42014:
+      $ref: '#/components/schemas/ProductDataPR41016'
+    BillingSelf:
+      title: Patient Pay
+      additionalProperties: false
+      type: object
+      properties:
+        billing_type:
+          type: string
+          title: Billing Type
+          default: SELF
+          enum:
+          - SELF
+        stripe_paymentintent_id:
+          type: string
+        promo_code:
+          type: string
+      required:
+      - billing_type
+    had_breast_cancer:
+      title: Did They Have Breast Cancer?
+      $ref: '#/components/schemas/YesNoUnknown'
+    PRSToplineFinding:
+      type: string
+      enum:
+      - AVERAGE_RISK
+      - ELEVATED_RISK
+      - HIGH_RISK
+      - LOW_RISK
+      - INTERMEDIATE_RISK
+      - BORDERLINE_RISK
+      - NOT_ANALYZED
+      - INCREASED_RISK
+      - NOT_INCREASED_RISK
+    ClinicalSummaryLetter:
+      type: object
+      description: '"Clinical summary letter provided by physician of record. Only relevant if physician of record services were requested."
+
+        '
+      properties:
+        completed_on:
+          allOf:
+          - $ref: '#/components/schemas/YMDDate'
+        description:
+          type:
+          - string
+          - 'null'
+        mimetype:
+          type:
+          - string
+          - 'null'
+        uri:
+          type:
+          - string
+          - 'null'
+    menopausal_status:
+      $ref: '#/components/schemas/MenopausalStatus'
+    WaistCircumference:
+      title: Waist Circumference (cm)
+      description: must be between 50 - 200
+      type: number
+      minimum: 50
+      maximum: 200
+      example: 90
+    breast_density_measure:
+      title: Breast Density Measure
+      type: string
+      anyOf:
+      - title: Volpara® Volumetric Density (%)
+        type: string
+        enum:
+        - VOLPARA
+      - title: VAS Percentage Density
+        type: string
+        enum:
+        - VAS
+      - title: BI-RADS® ATLAS Density
+        type: string
+        enum:
+        - BIRADS
+      - title: Not Available
+        type: string
+        enum:
+        - NOT_AVAILABLE
+    Name:
+      type: object
+      title: Name
+      additionalProperties: false
+      properties:
+        first:
+          type: string
+          title: First
+        middle:
+          type:
+          - string
+          - 'null'
+          title: Middle
+        last:
+          type: string
+          title: Last
+        credentials:
+          type:
+          - string
+          - 'null'
+          title: Credentials
+          description: e.g. M.D., Ph.D.
+      examples:
+      - first: Zaphod
+        middle: Vogon
+        last: Beeblebrox
+        credentials: M.D., Ph.D.
+    FirstDegreeFamilyWithType2Diabetes:
+      title: Has a First Degree Family Member Been Diagnosed with Type 2 Diabetes?
+      type: boolean
+    FastingGlucoseLevel:
+      title: Fasting Glucose Level (mg/dL)
+      description: must be between 50 - 250gs; levels >250 (diabetic) not eligible
+      type: number
+      minimum: 50
+      maximum: 250
+      example: 85.5
+    ClinicId:
+      type: string
+      pattern: ^CL-?([a-z]{3,5}-?)?\d+$
+      examples:
+      - CL-0123456
+      - CL-dev-123456
+      - CL0123456
+      - CLdev123456
+    ProductDataPR41016:
+      type: object
+      title: Inputs for IPRS CAD
+      additionalProperties: false
+      required:
+      - smoking
+      - diabetes
+      - cholesterol
+      - blood_pressure
+      properties:
+        diagnosed_with_coronary_artery_disease:
+          $ref: '#/components/schemas/diagnosed_with_coronary_artery_disease'
+        smoking:
+          $ref: '#/components/schemas/smoking'
+        diabetes:
+          $ref: '#/components/schemas/diabetes'
+        cholesterol:
+          $ref: '#/components/schemas/cholesterol'
+        blood_pressure:
+          $ref: '#/components/schemas/blood_pressure'
+    TotalCholesterol:
+      title: Total Cholesterol Level (mg/dL)
+      description: must be between 130 - 320
+      type: number
+      minimum: 130
+      maximum: 320
+    UUID:
+      description: Python UUID
+      type: string
+      pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}
+      examples:
+      - 90cd1561-bcc4-46bc-9ba2-19bb2521a28e
+      - c2a78d62-969f-455e-8b8f-bd5f0efd9273
+    SystolicBloodPressure:
+      title: Systolic Blood Pressure (mm HG)
+      description: must be between 90 - 200
+      type: number
+      minimum: 90
+      maximum: 200
+    age_at_ovarian_cancer:
+      title: Age At Which They Developed Ovarian Cancer?
+      description: If unknown, then their current age or the age at which they died.
+      type: integer
+      minimum: 0
+    CaseRequisition:
+      type: object
+      properties:
+        requisition_id:
+          allOf:
+          - $ref: '#/components/schemas/RequisitionId'
+        name:
+          allOf:
+          - $ref: '#/components/schemas/Name'
+        individual_id:
+          allOf:
+          - $ref: '#/components/schemas/IndividualId'
+        sample_received_at:
+          allOf:
+          - $ref: '#/components/schemas/YMDDate'
+        relationship:
+          allOf:
+          - $ref: '#/components/schemas/BiologicalRelationshipWithReverse'
+        is_primary_requisition:
+          type:
+          - boolean
+          - 'null'
+        orders:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/RequisitionOrderDetails'
+    ProductId:
+      type: string
+      description: A reference to an ordered product.
+      pattern: ^PR-?\d+$
+      examples:
+      - PR-0123456
+      - PR0123456
+    BiologicalSex:
+      description: Sex assigned at birth
+      type: string
+      enum:
+      - FEMALE
+      - MALE
+      - OTHER
+    ProductDataPR41034:
+      type: object
+      title: Inputs for IPRS PRC
+      additionalProperties: false
+      required:
+      - diagnosed_with_prostate_cancer
+      - prostate_cancer_family_history
+      properties:
+        diagnosed_with_prostate_cancer:
+          $ref: '#/components/schemas/diagnosed_with_prostate_cancer'
+        prostate_cancer_family_history:
+          $ref: '#/components/schemas/prostate_cancer_family_history'
+    weight:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Weight (kg)
+      description: Enter to two decimal points (e.g. 95.25)
+      type: number
+      minimum: 0
+      maximum: 500
+      example: 95.25
+    waist_circumference:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Waist Circumference
+      type: object
+      required:
+      - waist_circumference
+      properties:
+        waist_circumference:
+          $ref: '#/components/schemas/WaistCircumference'
+      additionalProperties: false
+      definitions:
+        WaistCircumference:
+          title: Waist Circumference (cm)
+          description: must be between 50 - 200
+          type: number
+          minimum: 50
+          maximum: 200
+          example: 90
+    breast_density_value_birads:
+      title: Breast Density Value
+      description: Value for BI-RADS
+      type: string
+      enum:
+      - ALMOST_ENTIRELY_FATTY
+      - SCATTERED_FIBROGLANDULAR DENSITY
+      - HETEROGENEOUSLY_DENSE
+      - EXTREMELY_DENSE
+    ClinicianId:
+      title: Clinician ID
+      type: string
+      pattern: ^CN-?([a-z]{3,5}-?)?\d+$
+      examples:
+      - CN-0123456
+      - CN-dev-0123456
+      - CN0123456
+      - CNdev0123456
+    type_of_hormone_replacement_therapy_taken:
+      title: Type Of Hormone Replacement Therapy (HRT) Taken
+      type: string
+      enum:
+      - OESTROGEN
+      - COMBINED
+      - UNKNOWN
+    age_at_first_birth:
+      title: Age At First Birth
+      description: Leave blank if unknown.
+      type: integer
+      minimum: 0
+      maximum: 99
+    age_at_breast_cancer:
+      title: Age At Which They Developed Breast Cancer?
+      description: If unknown, then their current age or the age at which they died.
+      type: integer
+      minimum: 0
+    body_mass_index:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Body Mass Index
+      type: object
+      required:
+      - body_mass_index
+      properties:
+        body_mass_index:
+          $ref: '#/components/schemas/BodyMassIndex'
+      additionalProperties: false
+      definitions:
+        BodyMassIndex:
+          title: Body Mass Index (kg/m^2)
+          description: must be between 15 - 50
+          type: number
+          minimum: 15
+          maximum: 50
+          example: 22.5
+    BillingInsurance:
+      title: Insurance Billing (Commercial, Medicaid, Medicare)
+      additionalProperties: false
+      type: object
+      properties:
+        billing_type:
+          type: string
+          title: Billing Type
+          default: INSURANCE
+          enum:
+          - INSURANCE
+        insurance:
+          type: array
+          minItems: 1
+          maxItems: 2
+          items:
+            $ref: '#/components/schemas/Insurance'
+      required:
+      - billing_type
+      - insurance
+    age_at_breast_cancer_bilateral:
+      title: Age At Which They Developed Bilateral Breast Cancer?
+      description: If unknown, then their current age or the age at which they died.
+      type: integer
+      minimum: 0
+    PGxImpactToplineFinding:
+      type: string
+      enum:
+      - MINIMAL_IMPACT
+      - ALTERED_DOSE
+      - MAJOR_IMPACT
+      - CONTRAINDICATED
+    ProductDataPR42038:
+      $ref: '#/components/schemas/ProductDataPR41034'
+    ProviderLicenseStatus:
+      type: string
+      enum:
+      - UNVERIFIED
+      - VERIFIED
+      - REVOKED
+      - DENIED
+    BillingInstitutional:
+      title: Institutional Billing
+      additionalProperties: false
+      type: object
+      properties:
+        billing_type:
+          type: string
+          title: Billing Type
+          default: INSTITUTIONAL
+          enum:
+          - INSTITUTIONAL
+        billing_code:
+          type: string
+          maxLength: 64
+          title: Billing Code
+          description: Institutional code for billing
+      required:
+      - billing_type
+    MonogenicToplineFinding:
+      type: string
+      enum:
+      - POSITIVE
+      - NEGATIVE
+    breast_cancer_bilateral:
+      title: Was Breast Cancer Bilateral?
+      $ref: '#/components/schemas/YesNoUnknown'
+    name:
+      title: Name
+      type: string
+    had_ovarian_cancer:
+      title: Did They Have Ovarian Cancer?
+      $ref: '#/components/schemas/YesNoUnknown'
+    Campaign:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Campaign
+      type: object
+      required:
+      - campaign_code
+      - name
+      - is_active
+      properties:
+        name:
+          type: string
+          examples:
+          - Example Partnership
+        campaign_code:
+          type: string
+          examples:
+          - EXAMPLE
+        description:
+          type: string
+          examples:
+          - by Example Partner
+        is_active:
+          type: boolean
+      additionalProperties: false
+    Billing:
+      title: Billing Information
+      description: Options are currently self-pay, insurance, and institutional billing.
+      type: array
+      maxItems: 1
+      items:
+        oneOf:
+        - $ref: '#/components/schemas/BillingSelf'
+        - $ref: '#/components/schemas/BillingInsurance'
+        - $ref: '#/components/schemas/BillingInstitutional'
+    RequisitionId:
+      type: string
+      pattern: ^RQ-?([a-z]{3,5}-?)?\d+$
+      examples:
+      - RQ-0123456
+      - RQ-dev-0123456
+      - RQ0123456
+      - RQdev0123456
+    EmailAddress:
+      type: string
+      title: Email Address
+      format: email
+    age_at_menarche:
+      title: Age At Menarche
+      description: Age at first menstrual period. Leave blank if unknown.
+      type: integer
+      minimum: 0
+      maximum: 99
+    SubjectOptionalAddress:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: SubjectOptionalAddress
+      type: object
+      properties:
+        name:
+          oneOf:
+          - $ref: '#/components/schemas/Name'
+          - type: 'null'
+        contact_info:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContactInfoOptional'
+        demographics:
+          oneOf:
+          - $ref: '#/components/schemas/Demographics'
+          - type: 'null'
+    TyrerCuzickFamilyHistory:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/name'
+        had_breast_cancer:
+          $ref: '#/components/schemas/had_breast_cancer'
+        breast_cancer_bilateral:
+          $ref: '#/components/schemas/breast_cancer_bilateral'
+        age_at_breast_cancer:
+          $ref: '#/components/schemas/age_at_breast_cancer'
+        age_at_breast_cancer_bilateral:
+          $ref: '#/components/schemas/age_at_breast_cancer_bilateral'
+        had_ovarian_cancer:
+          $ref: '#/components/schemas/had_ovarian_cancer'
+        age_at_ovarian_cancer:
+          $ref: '#/components/schemas/age_at_ovarian_cancer'
+        genetic_testing:
+          $ref: '#/components/schemas/BreastCancerGeneticTesting'
+    diagnosed_with_coronary_artery_disease:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Has the Patient Been Diagnosed With Coronary Artery Disease?
+      type: boolean
+    FirstOrSecondDegreeFamilyWithProstateCancer:
+      title: Has a First or Second Degree Family Member Been Diagnosed with Prostate Cancer?
+      type: string
+      $ref: '#/components/schemas/YesNoUnknown'
+    ConsentUri:
+      type: string
+      pattern: ^myome:consent:[A-Z_0-9]+(-\d+\.\d+\.\d+)?(-dev\.\d+)?$
+      examples:
+      - myome:consent:GENERAL-0.1.4
+      - myome:consent:PR2008-0.0.1
+      - myome:consent:DNAVISIT
+      - myome:consent:PRODUCT_NOTIFICATIONS-0.0.1
+      - myome:consent:PR5004-0.0.1-dev.0
+      - myome:consent:HIE_ACCESS__TREATMENT
+      - myome:consent:CONTACT__RESEARCH_OPPORTUNITIES
+      - myome:consent:CONTACT__TRANSACTIONAL_SMS
+      - myome:consent:CONTACT__MARKETING
+    number_of_live_births:
+      title: Number Of Live Births
+      description: Leave blank if unknown.
+      type: integer
+      minimum: 0
+      maximum: 50
+    BreastCancerGeneticTesting:
+      title: Breast Cancer Genetic Testing
+      type: string
+      anyOf:
+      - title: Never
+        type: string
+        enum:
+        - NEVER
+      - title: Test result negative
+        type: string
+        enum:
+        - NEGATIVE
+      - title: Positive in BRCA1
+        type: string
+        enum:
+        - BRCA1
+      - title: Positive in BRCA2
+        type: string
+        enum:
+        - BRCA2
+      - title: Unknown
+        type: string
+        enum:
+        - UNKNOWN
+    history_of_ovarian_cancer:
+      title: History Of Ovarian Cancer
+      $ref: '#/components/schemas/YesNoUnknown'
+    YesNoUnknown:
+      type: string
+      default: UNKNOWN
+      enum:
+      - 'YES'
+      - 'NO'
+      - UNKNOWN
+    Relationship:
+      description: Relationship to an individual (e.g., insurance policyholder)
+      type: string
+      enum:
+      - SELF
+      - SPOUSE
+      - CHILD
+      - DEPENDENT_HANDICAPPED
+      - DEPENDENT_SPONSORED
+      - DEPENDENT_OF_MINOR_DEPENDENT
+      - EMPLOYEE
+      - FOSTER_CHILD
+      - GRANDCHILD
+      - GRANDPARENT
+      - NEPHEW_OR_NIECE
+      - STEPCHILD
+      - UNKNOWN
+      - WARD_OF_COURT
+      - OTHER
+    triglyceride:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Triglyceride
+      type: object
+      required:
+      - triglyceride_level
+      properties:
+        triglyceride_level:
+          $ref: '#/components/schemas/TriglycerideLevel'
+      additionalProperties: false
+      definitions:
+        TriglycerideLevel:
+          title: Triglyceride Level (mg/dL)
+          description: must be between 40 - 500
+          type: number
+          minimum: 40
+          maximum: 500
+          example: 150.5
+    diagnosed_with_prostate_cancer:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Has the Patient Been Diagnosed With Prostate Cancer?
+      type: boolean
+    SampleType:
+      type: string
+      title: Sample Type
+      enum:
+      - SALIVA
+      - BLOOD
+      - BUCCAL_SWAB
+      - DNA
+      - DATA
+      - WATER
+      - POSITIVE_CONTROL
+    TriglycerideLevel:
+      title: Triglyceride Level (mg/dL)
+      description: must be between 40 - 500
+      type: number
+      minimum: 40
+      maximum: 500
+      example: 150.5
+    blood_pressure:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Blood Pressure
+      type: object
+      required:
+      - systolic_blood_pressure
+      - diastolic_blood_pressure
+      - antihypertension_medication_use
+      properties:
+        systolic_blood_pressure:
+          $ref: '#/components/schemas/SystolicBloodPressure'
+        diastolic_blood_pressure:
+          $ref: '#/components/schemas/DiastolicBloodPressure'
+        antihypertension_medication_use:
+          $ref: '#/components/schemas/AntiHyperTensionMedicationUse'
+      additionalProperties: false
+      definitions:
+        SystolicBloodPressure:
+          title: Systolic Blood Pressure (mm HG)
+          description: must be between 90 - 200
+          type: number
+          minimum: 90
+          maximum: 200
+        DiastolicBloodPressure:
+          title: Diastolic Blood Pressure (mm HG)
+          description: must be between 60 - 130
+          type: number
+          minimum: 60
+          maximum: 130
+        AntiHyperTensionMedicationUse:
+          title: Is The Patient Undergoing Treatment For Hypertension?
+          type: boolean
+    ProductDataPR42009:
+      $ref: '#/components/schemas/ProductDataPR41003'
+    PhysicianOfRecord:
+      description: true if the order requires physcian of record services
+      type: boolean
+      enum:
+      - true
+    history_of_lcis:
+      title: History Of LCIS
+      description: Lobular carcinoma in situ (LCIS)
+      $ref: '#/components/schemas/YesNoUnknown'
+    Address:
+      type: object
+      additionalProperties: false
+      properties:
+        street_address:
+          type: string
+          title: Street Address
+          description: Number and street
+        street_address_2:
+          type:
+          - string
+          - 'null'
+          title: Street Address Line 2
+        city:
+          type: string
+          title: City
+        region:
+          type: string
+          title: Region
+          description: State, province, or other country-specific region
+        postal_code:
+          type: string
+          title: Postal Code
+          description: Country-specific code for geographic districts
+        country:
+          type:
+          - string
+          - 'null'
+          title: Country
+          description: Country name or abbreviation
+      required:
+      - street_address
+      - city
+      - region
+      - postal_code
+      examples:
+      - street_address: 930 Brittan Ave
+        city: San Carlos
+        region: CA
+        postal_code: '94070'
+        country: US
+    length_of_time_taking_hormone_replacement_therapy:
+      title: Length Of Time Taking Hormone Replacement Therapy (HRT)
+      description: Round to the nearest decimal point (e.g. 4.5 years)
+      type: number
+      minimum: 0
+    history_of_hyperplasia:
+      title: History Of Hyperplasia
+      $ref: '#/components/schemas/YesNoUnknown'
+    RareDiseaseToplineFinding:
+      type: string
+      enum:
+      - POSITIVE
+      - NEGATIVE
+      - UNCERTAIN
+    FVTRequisitionDetails:
+      type: object
+      additionalProperties: false
+      properties:
+        source_requisition:
+          type:
+          - string
+          - 'null'
+          description: 'The identifier of the source requisition for FVT orders.
+
+            '
+        source_relationship:
+          type:
+          - string
+          - 'null'
+          description: 'The relationship of the source requisition to the current requisition.
+
+            '
+        variants:
+          type:
+          - array
+          - 'null'
+          items:
+            type: object
+            properties:
+              enum:
+                type:
+                - string
+                - 'null'
+                description: 'The enum value of the variant.
+
+                  '
+              title:
+                type:
+                - string
+                - 'null'
+                description: 'The display value of the variant.
+
+                  '
+    Institution:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Institution
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          type: string
+          examples:
+          - External Lab
+        auth_sub:
+          $ref: '#/components/schemas/UUID'
+        contact_info:
+          type: array
+          items:
+            type: object
+            properties:
+              phone:
+                $ref: '#/components/schemas/PhoneNumber'
+          maxItems: 1
+        clia_numbers:
+          type: array
+          items:
+            $ref: '#/components/schemas/CLIANumber'
+      additionalProperties: false
+    hormone_replacement_therapy_use:
+      title: Hormone Replacement Therapy (HRT) Use
+      type: string
+      anyOf:
+      - title: Never
+        type: string
+        enum:
+        - NEVER
+      - title: Previous user (more than 5 years ago)
+        type: string
+        enum:
+        - GT_5_YEARS_AGO
+      - title: Previous user (less than 5 years ago)
+        type: string
+        enum:
+        - LT_5_YEARS_AGO
+      - title: Current user (or stopped using less than 12 months ago)
+        type: string
+        enum:
+        - CURRENT
+    Clinician:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Clinician
+      type: object
+      required:
+      - name
+      - npi
+      properties:
+        clinician_id:
+          $ref: '#/components/schemas/ClinicianId'
+        name:
+          $ref: '#/components/schemas/Name'
+        contact_info:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContactInfoOptional'
+          maxItems: 1
+        clinic_name:
+          type: string
+        npi:
+          $ref: '#/components/schemas/NPI'
+        clinics:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - name
+            - clinic_id
+            properties:
+              name:
+                type: string
+              clinic_id:
+                $ref: '#/components/schemas/ClinicId'
+              roles:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrganizationProviderRole'
+              can_order:
+                type: boolean
+                description: Provider can place a new order at this organization
+        communication_preferences:
+          type: object
+        campaigns:
+          type: array
+          items:
+            $ref: '#/components/schemas/Campaign'
+        license_status:
+          $ref: '#/components/schemas/ProviderLicenseStatus'
+        is_active:
+          type: boolean
+          description: Whether the clinician is active (not archived and in_use).
+      additionalProperties: false
+    prostate_cancer_family_history:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: ProstateCancerFamilyHistory
+      type: object
+      required:
+      - first_or_second_degree_family_with_prostate_cancer
+      properties:
+        first_or_second_degree_family_with_prostate_cancer:
+          $ref: '#/components/schemas/FirstOrSecondDegreeFamilyWithProstateCancer'
+      additionalProperties: false
+      definitions:
+        FirstOrSecondDegreeFamilyWithProstateCancer:
+          title: Has a First or Second Degree Family Member Been Diagnosed with Prostate Cancer?
+          type: string
+          $ref: '#/components/schemas/YesNoUnknown'
+    ToplineFinding:
+      properties:
+        finding:
+          title: Finding
+          anyOf:
+          - $ref: '#/components/schemas/MonogenicToplineFinding'
+          - $ref: '#/components/schemas/PRSToplineFinding'
+          - $ref: '#/components/schemas/PGxImpactToplineFinding'
+          - $ref: '#/components/schemas/RareDiseaseToplineFinding'
+          type: string
+        text:
+          title: Text
+          type: string
+      required:
+      - finding
+      - text
+    ProductDataPR41027:
+      type: object
+      title: Inputs for IPRS T2D
+      additionalProperties: false
+      required:
+      - smoking
+      - glucose
+      - triglyceride
+      - cholesterol
+      - blood_pressure
+      - diabetes_family_history
+      - body_mass_index
+      - waist_circumference
+      properties:
+        diabetes:
+          $ref: '#/components/schemas/diabetes'
+        smoking:
+          $ref: '#/components/schemas/smoking'
+        cholesterol:
+          $ref: '#/components/schemas/cholesterol'
+        glucose:
+          $ref: '#/components/schemas/glucose'
+        triglyceride:
+          $ref: '#/components/schemas/triglyceride'
+        blood_pressure:
+          $ref: '#/components/schemas/blood_pressure'
+        diabetes_family_history:
+          $ref: '#/components/schemas/diabetes_family_history'
+        body_mass_index:
+          $ref: '#/components/schemas/body_mass_index'
+        waist_circumference:
+          $ref: '#/components/schemas/waist_circumference'
+    genetic_testing_of_father:
+      title: Genetic Testing Of The Woman's Father
+      $ref: '#/components/schemas/BreastCancerGeneticTesting'
+    SmokingStatus:
+      title: Current Smoking Status
+      type: string
+      oneOf:
+      - type: string
+        title: Current Smoker
+        enum:
+        - CURRENT
+      - type: string
+        title: Former Smoker
+        enum:
+        - FORMER
+      - type: string
+        title: Non-Smoker
+        enum:
+        - NEVER
+    length_of_time_since_last_taking_hormone_replacement_therapy:
+      title: Length Of Time Since Last Taking Hormone Replacement Therapy (HRT)
+      description: Round to the nearest decimal point (e.g. 4.5 years)
+      type: number
+      minimum: 0
+    ReportType:
+      type: string
+      enum:
+      - BASELINE_RISK
+      - MONOGENIC
+      - NDD_CNA
+      - RARE_DISEASE
+      - PGX
+      - PRS
+      - FAMILY_VARIANT_TESTING
+      - DATA_ONLY
+      - CLINICAL_RISK_ONLY
+      - CANCELED
+    OrganizationProviderRole:
+      type: string
+      enum:
+      - ADMIN
+      - DELEGATE
+      - CLINICIAN
+    DiastolicBloodPressure:
+      title: Diastolic Blood Pressure (mm HG)
+      description: must be between 60 - 130
+      type: number
+      minimum: 60
+      maximum: 130
+    DiagnosedWithType2Diabetes:
+      title: Has the Patient Been Diagnosed With Type 2 Diabetes?
+      type: boolean
+    AddressOptional:
+      type: object
+      additionalProperties: false
+      properties:
+        street_address:
+          type:
+          - string
+          - 'null'
+          title: Street Address
+          description: Number and street
+        street_address_2:
+          type:
+          - string
+          - 'null'
+          title: Street Address Line 2
+        city:
+          type:
+          - string
+          - 'null'
+          title: City
+        region:
+          type:
+          - string
+          - 'null'
+          title: Region
+          description: State, province, or other country-specific region
+        postal_code:
+          type:
+          - string
+          - 'null'
+          title: Postal Code
+          description: Country-specific code for geographic districts
+        country:
+          type:
+          - string
+          - 'null'
+          title: Country
+          description: Country name or abbreviation
+      examples:
+      - street_address: 930 Brittan Ave
+        city: San Carlos
+        region: CA
+        postal_code: '94070'
+        country: US
+    ExternalOrderStatus:
+      type: string
+      enum:
+      - SUBMITTED
+      - APPROVED
+      - DENIED
+      - AWAITING_SAMPLE
+      - ANALYZING
+      - REFERRAL_LAB_LD_REVIEW
+      - CLINICIAN_REVIEW
+      - COMPLETED
+      - CANCELED
+      - FAILED
+    diabetes_family_history:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: DiabetesFamilyHistory
+      type: object
+      required:
+      - first_degree_family_with_type_2_diabetes
+      properties:
+        first_degree_family_with_type_2_diabetes:
+          $ref: '#/components/schemas/FirstDegreeFamilyWithType2Diabetes'
+      additionalProperties: false
+      definitions:
+        FirstDegreeFamilyWithType2Diabetes:
+          title: Has a First Degree Family Member Been Diagnosed with Type 2 Diabetes?
+          type: boolean
+    smoking:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Smoking
+      type: object
+      required:
+      - smoking_status
+      properties:
+        smoking_status:
+          $ref: '#/components/schemas/SmokingStatus'
+      additionalProperties: false
+      definitions:
+        SmokingStatus:
+          title: Current Smoking Status
+          type: string
+          oneOf:
+          - type: string
+            title: Current Smoker
+            enum:
+            - CURRENT
+          - type: string
+            title: Former Smoker
+            enum:
+            - FORMER
+          - type: string
+            title: Non-Smoker
+            enum:
+            - NEVER
+    breast_density_value_decimal:
+      title: Breast Density Value (0.00 to 100.00)
+      description: Value for Volpara® and VAS
+      type: number
+      minimum: 0.0
+      maximum: 100.0
+    Demographics:
+      type: object
+      title: Demographics
+      properties:
+        dob:
+          title: Date of Birth
+          description: mm/dd/yyyy
+          $ref: '#/components/schemas/Date'
+        sex:
+          title: Sex
+          $ref: '#/components/schemas/BiologicalSex'
+        gender:
+          $ref: '#/components/schemas/Gender'
+    CLIANumber:
+      type: string
+      pattern: ^\d{2}D[A-Za-z0-9]{7}$
+      examples:
+      - 12D3ad2R7q
+      - 34D31532S5
+    FamilyHistory:
+      type: object
+      description: 'Family History Questionnaire Answers
+
+        Format: {QNR_FHX_<_ID_>: {question_text: "question?", response:<YES|NO|UNSURE>}}
+
+        '
+    brother_had_breast_cancer:
+      title: Has A Brother Had Breast Cancer?
+      $ref: '#/components/schemas/YesNoUnknown'
+    ashkenazi_jewish:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Ashkenazi Jewish Heritage
+      description: Does the patient have an Ashkenazi Jewish Heritage?
+      type: string
+      $ref: '#/components/schemas/YesNoUnknown'
+    height:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Height (m)
+      description: Enter to two decimal points (e.g. 1.65)
+      type: number
+      minimum: 0
+      maximum: 5
+      example: 1.65
+    Gender:
+      description: "Cultural/social gender; unconstrained string\nSources:\n  * https://www.csusm.edu/ipa/surveys/inclusive-language-guidelines.html"
+      type: string
+      enum:
+      - CISGENDER_MAN
+      - CISGENDER_WOMAN
+      - NO_RESPONSE
+      - NON_BINARY
+      - TRANSGENDER_MAN
+      - TRANSGENDER_WOMAN
+    diabetes:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Diabetes
+      type: object
+      required:
+      - diagnosed_with_type_2_diabetes
+      properties:
+        diagnosed_with_type_2_diabetes:
+          $ref: '#/components/schemas/DiagnosedWithType2Diabetes'
+      additionalProperties: false
+      definitions:
+        DiagnosedWithType2Diabetes:
+          title: Has the Patient Been Diagnosed With Type 2 Diabetes?
+          type: boolean
+    File:
+      type: object
+      required:
+      - uri
+      - mimetype
+      properties:
+        uri:
+          type: string
+        mimetype:
+          type: string
+        description:
+          type: string
+        sha512:
+          type: string
+          pattern: ^[0-9a-fA-F]{128}$
+        crc64nvme:
+          type: string
+          pattern: ^[A-Za-z0-9+/_-]{11}=$
+        sha256:
+          type: string
+          pattern: ^[0-9a-fA-F]{64}$
+      examples:
+      - uri: s3://somebucket/path/to/report.json
+        description: Report in JSON format
+        mimetype: application/json
+        sha512: 1b3c34b32bba4ece72a7b9a1ee53359fe7238be5986984463b5da41baf3b53bce66c87d7f5557021c553a1bbeac175eac2b4923329b993fba11a93502c256912
+      - uri: s3://somebucket/path/to/report.pdf
+        description: Report in PDF format
+        mimetype: application/pdf
+        sha512: cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e
+      - uri: s3://somebucket/path/to/SM123.R1.fastq.gz
+        description: R1 FastQ file
+        mimetype: application/x.seq-na-fastq;type=paired_end;direction=R1
+        sha512: 3ef109fe55e194a0f37b5936405dcf2b96ce7eeb8891d59650c708d26f256d018fd8f98c6efb7da8f85029a3708e34f86a54e700ba3b36fb0967aa869ed37915
+    father_had_breast_cancer:
+      title: Has The Father Had Breast Cancer?
+      $ref: '#/components/schemas/YesNoUnknown'
+    length_of_future_time_intended_to_take_hormone_replacement_therapy:
+      title: Length Of Future Time Intended To Continue Taking Hormone Replacement Therapy (HRT)
+      description: Round to the nearest decimal point (e.g. 4.5 years)
+      type: number
+      minimum: 0
+    RequisitionToplineFinding:
+      type: string
+      enum:
+      - POSITIVE
+      - NEGATIVE
+      - UNCERTAIN
+      - HIGH_RISK
+      - INTERMEDIATE_RISK
+      - ELEVATED_RISK
+      - BORDERLINE_RISK
+      - AVERAGE_RISK
+      - LOW_RISK
+      - INCREASED_RISK
+      - NOT_INCREASED_RISK
+      - NOT_ANALYZED
+      - MINIMAL_IMPACT
+      - MAJOR_IMPACT
+      - ALTERED_DOSE
+      - CONTRAINDICATED
+    diagnosed_with_breast_cancer:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Has the Patient Been Diagnosed With Breast Cancer?
+      type: boolean
+    UTCTimestamp:
+      description: UTC timestamp in ISO-8601 format. e.g., `2018-11-13T20:20:39+00:00`
+      type: string
+      format: date-time
+      pattern: ^[12]\d{3}-[01]\d-[0123]\dT\d{2}:\d{2}:\d{2}\.?\d*[+-Z](\d{2}:\d{2})?$
+      examples:
+      - '2018-11-13T20:20:39+00:00'
+      - '2018-11-13T20:20:39.0123Z'
+    BiologicalRelationshipWithReverse:
+      description: Relationship to an individual including reverse relationships
+      type: string
+      enum:
+      - PARENT
+      - CHILD
+      - SIBLING
+    ContactInfo:
+      type: object
+      additionalProperties: false
+      properties:
+        address:
+          title: Address
+          $ref: '#/components/schemas/Address'
+        email:
+          $ref: '#/components/schemas/EmailAddress'
+        phone:
+          type: string
+          title: Phone Number
+        fax:
+          type:
+          - string
+          - 'null'
+          title: Fax Number
+    Insurance:
+      title: Insurance information
+      type: object
+      required:
+      - policyholder_name
+      - company
+      - member_id
+      - relationship_to_policyholder
+      properties:
+        policyholder_name:
+          title: Policy Holder Name
+          required:
+          - first
+          - last
+          $ref: '#/components/schemas/Name'
+        policyholder_dob:
+          title: Policyholder Date of Birth
+          description: mm/dd/yyyy
+          $ref: '#/components/schemas/Date'
+        policyholder_sex:
+          title: Policyholder Sex
+          $ref: '#/components/schemas/BiologicalSex'
+        policyholder_address:
+          title: Policyholder Address
+          $ref: '#/components/schemas/Address'
+        company:
+          title: Name of Insurance Company
+          type: string
+        phone:
+          title: Insurance Phone Number
+          type: string
+        member_id:
+          title: Member ID
+          type: string
+        group_number:
+          title: Group Number
+          type: string
+        prior_auth_number:
+          title: Prior Authorization Number
+          type: string
+        relationship_to_policyholder:
+          title: Patient Relationship to Policyholder
+          description: ''
+          $ref: '#/components/schemas/Relationship'
+        relationship_to_policyholder_other:
+          title: 'Patient Relationship to Policyholder Other: '
+          type: string
+        epsdt_coverage:
+          title: EPSDT Coverage
+          description: If the patient is under 21 years old and has a Medicaid plan, please provide the following information for Early and Periodic Screening, Diagnosis, and Treatment (EPSDT) coverage.
+          type: object
+          properties:
+            medicaid_plan:
+              title: Medicaid Plan
+              type: string
+            medicaid_number:
+              title: Medicaid Number
+              type: string
+            attestations:
+              title: 'I attest that test results will impact medical management, including treatment or care decisions as follows:'
+              type: array
+              items:
+                type: string
+                enum:
+                - My patient may be eligible for specific drug therapies or clinical trials
+                - My patient may be referred for additional medical consultations and/or support services for additional treatments and surveillance
+                - My patient's medication may change if genetic findings indicate risk for adverse reactions or poor drug metabolism
+              uniqueItems: true
+    LabReferral:
+      description: true if the order is being placed by a referring lab
+      type: boolean
+      enum:
+      - true
+    age_at_menopause:
+      title: Age At Menopause
+      description: Leave blank if unknown.
+      type: integer
+      minimum: 0
+      maximum: 99
+    HDLCholesterol:
+      title: HDL Cholesterol Level (mg/dL)
+      description: must be between 20 - 100
+      type: number
+      minimum: 20
+      maximum: 100
+    SortOrder:
+      description: Order in which results are sorted
+      type: string
+      enum:
+      - ascending
+      - descending
+      default: ascending
+    PhoneNumber:
+      type: string
+      pattern: ^\+?\d{1,4}?[-\s]?\(?\d{1,3}?\)?[-\s]?\d{1,4}[-\s]?\d{1,9}?$
+      examples:
+      - '+919367788755'
+      - '8989829304'
+      - '+16308520397'
+      - 786-307-3615
+      - +1-555-555-5555
+    AntiHyperTensionMedicationUse:
+      title: Is The Patient Undergoing Treatment For Hypertension?
+      type: boolean
+    NPI:
+      type: string
+      title: NPI
+      pattern: ^\d{9,10}$
+      examples:
+      - 012345678
+      - 0123456789
+    OrderId:
+      type: string
+      pattern: ^OR-?([a-z]{3,5}-?)?\d+$
+      examples:
+      - OR-0123456
+      - OR-dev-0123456
+      - OR0123456
+      - ORdev0123456
+    polygenic_snp_score:
+      title: Polygenic SNP Score
+      description: Log relative risk, decimal
+      type: number
+    MenopausalStatus:
+      title: Menopausal Status
+      type: string
+      default: UNKNOWN
+      enum:
+      - PREMENOPAUSAL
+      - PERIMENOPAUSAL
+      - POSTMENOPAUSAL
+      - UNKNOWN
+    cholesterol:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Cholesterol
+      type: object
+      required:
+      - total_cholesterol
+      - hdl_cholesterol
+      properties:
+        total_cholesterol:
+          $ref: '#/components/schemas/TotalCholesterol'
+        hdl_cholesterol:
+          $ref: '#/components/schemas/HDLCholesterol'
+      additionalProperties: false
+      definitions:
+        TotalCholesterol:
+          title: Total Cholesterol Level (mg/dL)
+          description: must be between 130 - 320
+          type: number
+          minimum: 130
+          maximum: 320
+        HDLCholesterol:
+          title: HDL Cholesterol Level (mg/dL)
+          description: must be between 20 - 100
+          type: number
+          minimum: 20
+          maximum: 100
+    ProductDataPR41003:
+      type: object
+      title: Inputs for IPRS Breast Cancer
+      description: Additional data needed for iPRS Breast Cancer
+      additionalProperties: false
+      properties:
+        diagnosed_with_breast_cancer:
+          $ref: '#/components/schemas/diagnosed_with_breast_cancer'
+        weight:
+          $ref: '#/components/schemas/weight'
+        height:
+          $ref: '#/components/schemas/height'
+        ashkenazi_jewish:
+          $ref: '#/components/schemas/ashkenazi_jewish'
+        tyrer_cuzick_inputs:
+          $ref: '#/components/schemas/tyrer_cuzick_inputs'
+    DNAVisitServiceType:
+      description: Pre- and post-test service types offered by DNAVisit
+      type: string
+      enum:
+      - PRE_TEST_REVIEW_ONLY
+      - PRE_TEST_COUNSELING
+      - POST_TEST_REVIEW_ONLY
+      - POST_TEST_COUNSELING
+    history_of_atypical_hyperplasia:
+      title: History Of Atypical Hyperplasia
+      $ref: '#/components/schemas/YesNoUnknown'
+    glucose:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Glucose
+      type: object
+      required:
+      - fasting_glucose_level
+      properties:
+        fasting_glucose_level:
+          $ref: '#/components/schemas/FastingGlucoseLevel'
+      additionalProperties: false
+      definitions:
+        FastingGlucoseLevel:
+          title: Fasting Glucose Level (mg/dL)
+          description: must be between 50 - 250gs; levels >250 (diabetic) not eligible
+          type: number
+          minimum: 50
+          maximum: 250
+          example: 85.5
+    RerequisitionType:
+      type: string
+      enum:
+      - NEW_ORDER
+      - REANALYSIS
+    RequisitionListResultItem:
+      type: object
+      additionalProperties: false
+      required:
+      - individual_id
+      - requisition_id
+      - name
+      - order_date
+      - submitted_at
+      - updated_at
+      - orders
+      properties:
+        requisition_id:
+          $ref: '#/components/schemas/RequisitionId'
+        individual_id:
+          $ref: '#/components/schemas/IndividualId'
+        external_mrn:
+          type:
+          - string
+          - 'null'
+        name:
+          $ref: '#/components/schemas/Name'
+        clinician_review_status:
+          allOf:
+          - $ref: '#/components/schemas/ClinicianReviewStatus'
+        external_status:
+          allOf:
+          - $ref: '#/components/schemas/ExternalOrderStatus'
+        order_date:
+          $ref: '#/components/schemas/YMDDate'
+        sample_received_at:
+          allOf:
+          - $ref: '#/components/schemas/YMDDate'
+        submitted_at:
+          $ref: '#/components/schemas/UTCTimestamp'
+        updated_at:
+          $ref: '#/components/schemas/UTCTimestamp'
+        first_reported_at:
+          allOf:
+          - $ref: '#/components/schemas/YMDDate'
+          description: Date the first report was released to provider
+        clinical_summary_letter_ready_at:
+          allOf:
+          - $ref: '#/components/schemas/YMDDate'
+          description: Date the first clinical summary letter was completed
+        clinical_summary_letter:
+          allOf:
+          - $ref: '#/components/schemas/ClinicalSummaryLetter'
+        ordering_provider:
+          allOf:
+          - $ref: '#/components/schemas/Clinician'
+        rerequisition_type:
+          allOf:
+          - $ref: '#/components/schemas/RerequisitionType'
+        clinicians:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Clinician'
+        orders:
+          type: array
+          items:
+            $ref: '#/components/schemas/RequisitionOrderDetails'
+    RequisitionOrderDetails:
+      type: object
+      properties:
+        order_id:
+          allOf:
+          - $ref: '#/components/schemas/OrderId'
+        product_id:
+          allOf:
+          - $ref: '#/components/schemas/ProductId'
+        product_name:
+          type:
+          - string
+          - 'null'
+        report_type:
+          allOf:
+          - $ref: '#/components/schemas/ReportType'
+        created_at:
+          allOf:
+          - $ref: '#/components/schemas/YMDDate'
+        reported_at:
+          allOf:
+          - $ref: '#/components/schemas/YMDDate'
+        status:
+          allOf:
+          - $ref: '#/components/schemas/ExternalOrderStatus'
+        results:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/ToplineFinding'
+  parameters:
+    PaginationPageSize:
+      in: query
+      name: per_page
+      description: Number of items per page
+      schema:
+        type: integer
+        minimum: 1
+    RequisitionId:
+      in: query
+      name: requisition_id
+      description: MyOme requisition id
+      schema:
+        $ref: '#/components/schemas/RequisitionId'
+    ExternalOrderStatus:
+      in: query
+      name: status
+      description: Status of the Order
+      schema:
+        $ref: '#/components/schemas/ExternalOrderStatus'
+    OrderSubmittedAt:
+      in: query
+      name: submitted_at
+      description: Date which the order was submitted
+      schema:
+        $ref: '#/components/schemas/YMDDate'
+    SortOrder:
+      in: query
+      name: sort_order
+      description: Order in which results are sorted
+      schema:
+        $ref: '#/components/schemas/SortOrder'
+    SampleReceivedAt:
+      in: query
+      name: sample_received_at
+      description: Date which the sample was received
+      schema:
+        $ref: '#/components/schemas/YMDDate'
+    ClinicianName:
+      in: query
+      name: clinician_name
+      description: Name of the clinician
+      schema:
+        type: string
+    PatientName:
+      in: query
+      name: patient_name
+      description: Name of the patient
+      schema:
+        type: string
+    PaginationPageNumber:
+      in: query
+      name: page
+      description: Page number
+      schema:
+        type: integer
+        minimum: 1
+    ClinicianId:
+      in: query
+      name: clinician_id
+      description: ID of the clinician
+      schema:
+        $ref: '#/components/schemas/ClinicianId'
+    ExternalMRN:
+      in: query
+      name: external_mrn
+      description: Clinic's medical record number for the patient
+      schema:
+        type: string
+    RequisitionToplineFindings:
+      in: query
+      name: result
+      description: Test result findings
+      schema:
+        type: array
+        items:
+          $ref: '#/components/schemas/RequisitionToplineFinding'
+    PatientId:
+      in: query
+      name: patient_id
+      description: ID of the patient
+      schema:
+        $ref: '#/components/schemas/IndividualId'
+  responses:
+    StructuredError:
+      description: Generic structured error message
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            required:
+            - title
+            - detail
+            properties:
+              title:
+                type: string
+              detail:
+                type: string
+              code:
+                type:
+                - string
+                - 'null'
+                description: The type of error that occurred
+              errors:
+                type:
+                - object
+                - 'null'
+                additionalProperties: true
+                description: Dictionary of field names and error messages
+              extra:
+                oneOf:
+                - type: object
+                  additionalProperties: true
+                - type: string
+          examples:
+            simple_error:
+              value:
+                detail: There was an error validating the request
+                title: Validation error
+            flat_field_errors:
+              value:
+                code: validation_error
+                detail: Validation error
+                title: Validation error
+                errors:
+                  field1: field is required
+            nested_field_errors:
+              value:
+                code: validation_error
+                detail: Validation error
+                title: Validation error
+                errors:
+                  field1: field is required
+                  field2:
+                    field3: field is invalid
+            no_field_errors:
+              value:
+                code: validation_error
+                detail: Validation error
+                title: Validation error
+    RequisitionResponse:
+      description: Clinician, consent(s), order(s), and subject information associated with a given requisition ID. Status updates are provided for each individual order.
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            required:
+            - requisition_id
+            - orders
+            - consents_granted
+            - subject
+            properties:
+              requisition_id:
+                $ref: '#/components/schemas/RequisitionId'
+              provider_verification_status:
+                description: 'Verification state of the ordering provider for requisitions
+
+                  created with an embedded `ordering_provider`. `VERIFIED` means the
+
+                  provider was matched/verified and the order proceeds normally.
+
+                  `PENDING` means the provider could not be verified automatically;
+
+                  the requisition is accepted (HTTP 202) and held for manual review.
+
+                  Absent for requisitions that do not use an embedded ordering
+
+                  provider.
+
+                  '
+                type: string
+                enum:
+                - VERIFIED
+                - PENDING
+              clinicians:
+                type:
+                - array
+                - 'null'
+                items:
+                  $ref: '#/components/schemas/Clinician'
+              collated_report:
+                type:
+                - object
+                - 'null'
+                description: 'MyOme report consisting of a cover page, report for each order, and a
+
+                  clinical summary letter. Currently only available for patient initiated
+
+                  test requests.
+
+                  '
+                properties:
+                  uri:
+                    type:
+                    - string
+                    - 'null'
+                  description:
+                    type:
+                    - string
+                    - 'null'
+                  mimetype:
+                    type:
+                    - string
+                    - 'null'
+              clinical_summary_letter:
+                allOf:
+                - $ref: '#/components/schemas/ClinicalSummaryLetter'
+                description: 'Clinical summary letter for the requisition if available. Absent otherwise.
+
+                  '
+              genetic_counseling:
+                allOf:
+                - $ref: '#/components/schemas/DnavisitServiceRequest'
+                description: 'Most recent post-test-genetic counseling request for the requisition. Contains
+
+                  the genetic counseling scheduling link when available. Absent when no post-test
+
+                  counseling was requested.
+
+
+                  `appointment_url` and `access_code` are used independently, not combined into a
+
+                  single URL: open `appointment_url` directly (do not append the code as a query
+
+                  param) to view or manage the appointment, and present `access_code` to the
+
+                  patient to enter on DNAvisit''s scheduling site.
+
+                  '
+              consents_granted:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConsentUri'
+              orders:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RequisitionOrderDetails'
+              subject:
+                $ref: '#/components/schemas/SubjectOptionalAddress'
+              submitted_at:
+                allOf:
+                - $ref: '#/components/schemas/UTCTimestamp'
+              referring_lab:
+                allOf:
+                - $ref: '#/components/schemas/Institution'
+              institution:
+                allOf:
+                - $ref: '#/components/schemas/Institution'
+              case_requisitions:
+                type:
+                - array
+                - 'null'
+                description: 'A list of any connected requisitions for duo and trio products
+
+                  '
+                items:
+                  $ref: '#/components/schemas/CaseRequisition'
+              fvt:
+                allOf:
+                - $ref: '#/components/schemas/FVTRequisitionDetails'
+              external_status:
+                allOf:
+                - $ref: '#/components/schemas/ExternalOrderStatus'
+              clinician_review_status:
+                allOf:
+                - $ref: '#/components/schemas/ClinicianReviewStatus'
+              order_date:
+                allOf:
+                - $ref: '#/components/schemas/YMDDate'
+              rerequisition_type:
+                allOf:
+                - $ref: '#/components/schemas/RerequisitionType'
+          example:
+          - requisition_id: RQ2000042
+            clinicians:
+            - clinic_name: Acme Health
+              contact_info:
+              - address:
+                  city: San Francisco
+                  country: US
+                  postal_code: '12345'
+                  region: CA
+                  street_address: 123 Example Ln
+                email: clinician@example.com
+                phone: +1-415-555-1212
+              name:
+                first: Zaphod
+                last: Beeblebrox
+                credentials: M.D.
+              npi: 012345678
+              clinics:
+              - name: Acme Health
+                clinic_id: CL12345
+                roles:
+                - CLINICIAN
+              campaigns:
+              - campaign_code: ANVIL
+                name: Anvil
+                description: by Acme Health
+                is_active: true
+            consents_granted:
+            - myome:consent:GENERAL-0.0.1
+            - myome:consent:PR2019-0.0.1
+            orders:
+            - order_id: OR2000308
+              product_id: PR-2019
+              product_name: MyOme Personal Genome, Proactive Health, 81 Genes
+              report_type: MONOGENIC
+              status: ANALYZING
+              results:
+              - finding: POSITIVE
+                text: A pathogenic variant was identified in the BRCA2 gene.
+              created_at: '2023-05-16T04:59:01.169271+00:00'
+              reported_at: '2022-11-12T22:07:34.557423Z'
+            referring_lab:
+              name: Acme Referring Lab
+              clia_numbers:
+              - 19D0000000
+              contact_info:
+              - phone: 555-123-4567
+            subject:
+              demographics:
+                sex: MALE
+                dob: '1999-01-01'
+              contact_info:
+              - address:
+                  city: San Francisco
+                  country: US
+                  postal_code: '98765'
+                  region: CA
+                  street_address: 456 Open Rd
+                email: patient@example.com
+                phone: +1-415-555-9090
+              name:
+                first: Ford
+                last: Prefect
+            submitted_at: '2023-05-15T04:59:01.169271+00:00'
+            external_status: COMPLETED
+            clinician_review_status: COMPLETED
+            clinical_summary_letter:
+              completed_on: '2026-01-21'
+              description: post_test_letter
+              mimetype: application/pdf
+              uri: https://example.myome.com/clinical-summary-letter.pdf
+            genetic_counseling:
+              requisition_id: RQ2000042
+              appointment_url: https://appointment.dnavisit.com/example
+              access_code: ABC123
+              external_status: COMPLETED
+              service_type: POST_TEST_COUNSELING
+              requested_on: '2026-01-15'
+              completed_on: '2026-01-21'
+              dnavisit_order_id: DNAV-123
+            fvt:
+              source_requisition: RQ123
+              source_relationship: PARENT
+              variants:
+              - value: '1'
+                display: BTD NM_007294.4(BRCA1):c.5585A>G NP_009225.1:p.His1862Arg (Pathogenic)
+    OrderGetResponse:
+      description: status of request, and result if available
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              order_id:
+                allOf:
+                - $ref: '#/components/schemas/OrderId'
+              requisition_id:
+                allOf:
+                - $ref: '#/components/schemas/RequisitionId'
+              product_id:
+                allOf:
+                - $ref: '#/components/schemas/ProductId'
+              product_name:
+                type:
+                - string
+                - 'null'
+              report_type:
+                allOf:
+                - $ref: '#/components/schemas/ReportType'
+              status:
+                allOf:
+                - $ref: '#/components/schemas/ExternalOrderStatus'
+              submitted_at:
+                allOf:
+                - $ref: '#/components/schemas/UTCTimestamp'
+              updated_at:
+                allOf:
+                - $ref: '#/components/schemas/UTCTimestamp'
+              results:
+                description: Results files returned for return to Patients and Providers
+                type:
+                - array
+                - 'null'
+                items:
+                  properties:
+                    uri:
+                      type:
+                      - string
+                      - 'null'
+                    description:
+                      type:
+                      - string
+                      - 'null'
+                    mimetype:
+                      type:
+                      - string
+                      - 'null'
+                    reported_date:
+                      allOf:
+                      - $ref: '#/components/schemas/UTCTimestamp'
+              myome_results:
+                description: MyOmes original results files if cobranded files are returned in results
+                type:
+                - array
+                - 'null'
+                items:
+                  properties:
+                    uri:
+                      type:
+                      - string
+                      - 'null'
+                    description:
+                      type:
+                      - string
+                      - 'null'
+                    mimetype:
+                      type:
+                      - string
+                      - 'null'
+                    reported_date:
+                      allOf:
+                      - $ref: '#/components/schemas/UTCTimestamp'
+              status_detail:
+                type:
+                - object
+                - 'null'
+                properties:
+                  status_reason:
+                    type:
+                    - string
+                    - 'null'
+                    enum:
+                    - QC_FAILURE_DATA
+                    - QC_FAILURE_SEX_MISMATCH
+                  status_message:
+                    type:
+                    - string
+                    - 'null'
+              results_json:
+                type:
+                - object
+                - 'null'
+                additionalProperties: true
+          example:
+          - order_id: ORtst001234
+            product_id: PR-2019
+            product_name: MyOme Personal Genome, Proactive Health, 81 Genes
+            report_type: MONOGENIC
+            requisition_id: RQtst001234
+            status: COMPLETED
+            submitted_at: '2022-09-01T16:18:03.460384+00:00'
+            updated_at: '2022-09-03T16:18:03.460384+00:00'
+            results:
+            - uri: s3://somebucket/path/to/RP-0001234.pdf
+              description: signed pdf with pii
+              mimetype: application/pdf
+              reported_date: '2022-09-03T16:18:03.460384+00:00'
+            status_detail:
+              status_reason: QC_FAILURE_DATA
+              status_message: 'Import failure: data downloaded does not match sha512'
+    RequisitionListResultsResponse:
+      description: List of available requisitions and corresponding details.
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            required:
+            - count
+            - next
+            - previous
+            - results
+            properties:
+              count:
+                type: integer
+              next:
+                type:
+                - string
+                - 'null'
+              previous:
+                type:
+                - string
+                - 'null'
+              results:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RequisitionListResultItem'
+          example:
+          - count: 1
+            next: null
+            previous: null
+            results:
+            - requisition_id: RQ2001234
+              individual_id: IN2001234
+              external_mrn: ABC123
+              clinician_review_status: COMPLETED
+              external_status: COMPLETED
+              order_date: '2025-12-23'
+              sample_received_at: '2022-12-23T22:07:34.557423Z'
+              submitted_at: '2025-12-23T22:07:34.557423Z'
+              updated_at: '2025-12-23T22:07:34.557423Z'
+              first_reported_at: '2025-12-27'
+              clinical_summary_letter_ready_at: '2025-12-27'
+              name:
+                first: John
+                last: Doe
+              clinical_summary_letter:
+                uri: https://example.myome.com/clinical-summary-letter.pdf
+                description: Clinical summary letter for the requisition
+                mimetype: application/pdf
+                completed_on: '2025-12-27'
+              orders:
+              - order_id: OR2000308
+                product_id: PR-2019
+                product_name: MyOme Personal Genome, Proactive Health, 81 Genes
+                report_type: MONOGENIC
+                created_at: '2025-05-16T04:59:01.169271+00:00'
+                reported_at: '2025-12-27'
+                status: ANALYZING
+                results:
+                - finding: POSITIVE
+                  text: A pathogenic variant was identified in the BRCA2 gene.
+              ordering_provider:
+                clinician_id: CNtst123456
+                npi: '8765432100'
+                name:
+                  credentials: M.D.
+                  first: Jon
+                  last: Doe
+                  middle: Example
+                contact_info:
+                - address:
+                    city: San Francisco
+                    country: US
+                    postal_code: '99999'
+                    region: CA
+                    street_address: 123 Example Ave
+                  email: example@clinician.com
+                  fax: '123456789'
+                  phone: 555-555-5555
+  requestBodies:
+    Requisition:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+            - order
+            - subject
+            - billing
+            additionalProperties: false
+            properties:
+              billing:
+                $ref: '#/components/schemas/Billing'
+              campaign:
+                type: string
+              ordering_provider_npi:
+                $ref: '#/components/schemas/NPI'
+              ordering_provider:
+                description: 'Embedded ordering provider details. Use this instead of
+
+                  `ordering_provider_npi` when the provider may not yet exist at the
+
+                  clinic. If the NPI does not resolve to a verified provider, MyOme
+
+                  verifies it against the NPPES registry. On a successful match the
+
+                  provider is created/used as verified and the requisition proceeds
+
+                  normally. If verification cannot be completed automatically, the
+
+                  requisition is accepted (HTTP 202) with
+
+                  `provider_verification_status: PENDING` and held for manual review.
+
+                  '
+                type: object
+                required:
+                - npi
+                - name
+                properties:
+                  npi:
+                    $ref: '#/components/schemas/NPI'
+                  name:
+                    $ref: '#/components/schemas/Name'
+              ordering_clinic:
+                $ref: '#/components/schemas/ClinicId'
+              sharing_providers:
+                description: 'Providers with whom the order will be shared.
+
+                  '
+                type: array
+                items:
+                  type: object
+                  required:
+                  - provider_npi
+                  - clinic_id
+                  properties:
+                    provider_npi:
+                      $ref: '#/components/schemas/NPI'
+                    clinic_id:
+                      $ref: '#/components/schemas/ClinicId'
+              consents_granted:
+                description: 'Consents asserted by the client.
+
+
+                  Consent IDs available to the client may be obtained from the `/consents/`
+
+                  endpoint.
+
+                  '
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConsentUri'
+              hie_opt_in:
+                description: true for opt-in, false for opt-out
+                type:
+                - boolean
+                - 'null'
+              research_contact_opt_in:
+                description: true for opt-in, false for opt-out
+                type:
+                - boolean
+                - 'null'
+              transactional_sms_opt_in:
+                description: true for opt-in, false for opt-out
+                type:
+                - boolean
+                - 'null'
+              marketing_opt_in:
+                description: true for opt-in, false for opt-out
+                type:
+                - boolean
+                - 'null'
+              order:
+                description: Order information
+                type: object
+                properties:
+                  send_kit:
+                    description: Whether MyOme should send a kit to the subject.
+                    type: boolean
+                  declared_specimen_type:
+                    $ref: '#/components/schemas/SampleType'
+                  product_ids:
+                    description: 'Product codes specifying the desired tests or analyses.
+
+
+                      Product codes available to the client may be obtained from the `/products/`
+
+                      endpoint.
+
+                      '
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProductId'
+                  pre_test_counseling:
+                    description: Whether the subject will undergo pre-test genetic counseling
+                    type: boolean
+                    default: false
+                  post_test_counseling:
+                    description: Whether the subject will undergo post-test genetic counseling
+                    type: boolean
+                    default: false
+                  product_data:
+                    description: Additional data required for ordered products
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      PR-4001:
+                        $ref: '#/components/schemas/ProductDataPR4001Empower'
+                      PR41003:
+                        $ref: '#/components/schemas/ProductDataPR41003'
+                      PR42009:
+                        $ref: '#/components/schemas/ProductDataPR42009'
+                      PR41016:
+                        $ref: '#/components/schemas/ProductDataPR41016'
+                      PR42014:
+                        $ref: '#/components/schemas/ProductDataPR42014'
+                      PR41027:
+                        $ref: '#/components/schemas/ProductDataPR41027'
+                      PR42023:
+                        $ref: '#/components/schemas/ProductDataPR42023'
+                      PR41034:
+                        $ref: '#/components/schemas/ProductDataPR41034'
+                      PR42038:
+                        $ref: '#/components/schemas/ProductDataPR42038'
+                      PR51049:
+                        $ref: '#/components/schemas/ProductDataRareDisease'
+                      PR51017:
+                        $ref: '#/components/schemas/ProductDataRareDisease'
+                required:
+                - send_kit
+                - declared_specimen_type
+                - product_ids
+              lab_referral:
+                $ref: '#/components/schemas/LabReferral'
+              subject:
+                $ref: '#/components/schemas/Subject'
+              physician_of_record_services:
+                $ref: '#/components/schemas/PhysicianOfRecord'
+              family_history:
+                $ref: '#/components/schemas/FamilyHistory'
+              campaign_information:
+                type: object
+                additionalProperties: false
+                properties:
+                  participant_id:
+                    description: Campaign participant ID
+                    type: string
+                required:
+                - participant_id
+              clinical_indications:
+                description: Free-text clinical indications for the order.
+                type:
+                - string
+                - 'null'
+            oneOf:
+            - required:
+              - ordering_provider_npi
+              - ordering_clinic
+              - consents_granted
+              properties:
+                ordering_provider_npi:
+                  $ref: '#/components/schemas/NPI'
+                ordering_clinic:
+                  $ref: '#/components/schemas/ClinicId'
+                consents_granted:
+                  description: 'Consents asserted by the client.
+
+
+                    Consent IDs available to the client may be obtained from the `/consents/`
+
+                    endpoint.
+
+                    '
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ConsentUri'
+            - required:
+              - ordering_provider
+              - ordering_clinic
+              - consents_granted
+              properties:
+                ordering_provider:
+                  type: object
+                  required:
+                  - npi
+                  - name
+                  properties:
+                    npi:
+                      $ref: '#/components/schemas/NPI'
+                    name:
+                      $ref: '#/components/schemas/Name'
+                ordering_clinic:
+                  $ref: '#/components/schemas/ClinicId'
+                consents_granted:
+                  description: 'Consents asserted by the client.
+
+
+                    Consent IDs available to the client may be obtained from the `/consents/`
+
+                    endpoint.
+
+                    '
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ConsentUri'
+            - required:
+              - lab_referral
+              properties:
+                lab_referral:
+                  $ref: '#/components/schemas/LabReferral'
+            - required:
+              - physician_of_record_services
+              - consents_granted
+              - family_history
+              properties:
+                physician_of_record_services:
+                  $ref: '#/components/schemas/PhysicianOfRecord'
+                consents_granted:
+                  description: 'Consents asserted by the client.
+
+
+                    Consent IDs available to the client may be obtained from the `/consents/`
+
+                    endpoint.
+
+                    '
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ConsentUri'
+                family_history:
+                  $ref: '#/components/schemas/FamilyHistory'
+          example:
+          - billing:
+            - billing_type: INSURANCE
+              insurance:
+              - policyholder_name:
+                  first: John
+                  last: Doe
+                company: Best Health
+                member_id: '123456789'
+                prior_auth_number: '29484758'
+                relationship_to_policyholder: SELF
+            campaign: CAMPAIGN_CODE
+            ordering_provider_npi: 0123456789
+            ordering_clinic: CL1234
+            sharing_providers:
+            - provider_npi: '9876543210'
+              clinic_id: CL9876
+            consents_granted:
+            - myome:consent:GENERAL-0.0.1
+            - myome:consent:PR2019-0.0.1
+            order:
+              send_kit: false
+              product_ids:
+              - PR-2019
+              - PR-3009
+              declared_specimen_type: SALIVA
+              pre_test_counseling: false
+              post_test_counseling: true
+            subject:
+              name:
+                first: Ford
+                last: Prefect
+              demographics:
+                dob: '1999-01-01'
+                sex: MALE
+              contact_info:
+              - email: ford@prefect.com
+                phone: +1-415-555-1212
+                address:
+                  street_address: 1 Main St.
+                  city: San Francisco
+                  region: CA
+                  postal_code: '94105'
+                  country: US
+  securitySchemes:
+    jwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'JSON Web Token (JWT) obtained from Keycloak.
+
+        '
+      x-bearerInfoFunc: myome.api.support.auth.validate_kc_token

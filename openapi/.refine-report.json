@@ -1,0 +1,26 @@
+{
+  "provider": "myome",
+  "sources": [
+    "_original/myome-openapi-original.json"
+  ],
+  "outputs": [
+    "myome-institutional-interface-api-openapi.yml",
+    "myome-requisitions-and-orders-api-openapi.yml",
+    "myome-resources-api-openapi.yml"
+  ],
+  "archived": [],
+  "errors": [],
+  "warnings": [],
+  "notes": [
+    "1 archived document(s) dropped as subsets of other archived documents",
+    "sourced from openapi/_original/ (1 archived document(s)); previously refined output at the top level was skipped rather than re-split",
+    "myome-openapi-original.json: upgraded openapi 3.0.2 -> OpenAPI 3.2.0",
+    "apis.yml register: already-registered"
+  ],
+  "skipped": [
+    "_original/myome-openapi.json: archived document superseded by a larger archived document",
+    "myome-institutional-interface-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "myome-requisitions-and-orders-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "myome-resources-api-openapi.yml: previously refined output, superseded by openapi/_original/"
+  ]
+}

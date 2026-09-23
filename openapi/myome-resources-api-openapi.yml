@@ -4,7 +4,9 @@ info:
   version: 2.51.0
   contact:
     email: support@myome.com
-  description: "The MyOme API enables clients to:\n- List sequencing and analysis products available to the client.\n- Submit requisitions for sequencing for new samples.\n- Check status of requisitions and orders.\n- Retrieve order results, including sequencing data, structured interpretation\n  data, and PDF reports.\n\n# API Overview\n\n## Terminology\n\n- A *Product* is a specific assay or intepretation service. Product\n  identifiers begin with `PR`.\n- A *Requisition* is a request for one or more Products for a single sample.\n  Requisition identifiers begin with `RQ`.\n- An *Order* is\n  a request for a specific service for a specific sample.  An Order is created for each\n  Product requested in a Requisition Order identifiers\n  begin with `OR`.   \n- A *Report* is the end result of a successful Order. An Order typically has one\n  associated Report, but may have zero in the case of failure or multiple in\n  the case of amended or corrected reports.\n\n## Typical flow\n\n- Client obtains JWT from auth.myome.com. All of the following interactions with the MyOme API include\n  this JWT for authorization (details below).\n- Client sends a requisition to MyOme with product ID(s). Each product will generate a distinct order attached to that requisition. \n  The MyOme API returns a MyOme requisition id.\n- Client fetches information about the Requisition. The response includes an order id for each Order placed.\n- Client fetches information about each Order. The response includes the status and, if\n  available, links to results.\n\n## Order Statuses\n\nOrder status:\n- SUBMITTED - Order has been received\n- DENIED - Denied by physician of record (only relevant for patient-initiated testing requests)\n- CANCELED - Order was canceled\n- AWAITING_SAMPLE - Sample has not arrived yet\n- ANALYZING - Order is being processed\n- CLINICIAN_REVIEW - Order results sent to clinician and waiting for review\n- COMPLETED - Order has been completed\n\n# API Conventions\n\n## Authorization\n\nAll endpoints require authorization using JSON Web Tokens (JWT) using the header: `Authorization: Bearer <token>`. `<token>` is a JWT generated using Keycloak with partner-specific credientials. \nNote that the token refreshes every hour. MyOme will provide credentials to partners via secure email during account creation. Those credentials should be kept confidential.\n\n## HTTP Status Codes\n\nThe MyOme API uses the following standard HTTP status codes to indicate the success or failure\nof an API request.\n\n    200 Success\n    201 Created\n    204 No Content\n    400 Bad Request\n    401 Unauthorized\n    403 Forbidden\n    404 Resource Not Found\n    415 Unsupported Media Type\n    500 Internal Server Error\n\nA successful create request returns 201 Created along with the created object identifier. A successful\nupdate request returns 200 OK along with the updated object. An unsuccessful API request returns\na relevant HTTP status code along with an error response."
+  description: 'The MyOme API enables clients to:
+
+    - List sequencing and analysis products available to the client.'
 servers:
 - url: /0/
   description: local development server
@@ -49,15 +51,51 @@ paths:
       tags:
       - Resources
       summary: List orderable products
-      description: 'Returns the list of products that can be ordered (for use when creating requisitions).
-
-        '
+      description: Returns the list of products that can be ordered (for use when creating requisitions).
       responses:
         '200':
           $ref: '#/components/responses/ProductListResponse'
         '401':
           $ref: '#/components/responses/StructuredError'
 components:
+  schemas:
+    ProductId:
+      type: string
+      description: A reference to an ordered product.
+      pattern: ^PR-?\d+$
+      examples:
+      - PR-0123456
+      - PR0123456
+    ConsentUri:
+      type: string
+      pattern: ^myome:consent:[A-Z_0-9]+(-\d+\.\d+\.\d+)?(-dev\.\d+)?$
+      examples:
+      - myome:consent:GENERAL-0.1.4
+      - myome:consent:PR2008-0.0.1
+      - myome:consent:DNAVISIT
+      - myome:consent:PRODUCT_NOTIFICATIONS-0.0.1
+      - myome:consent:PR5004-0.0.1-dev.0
+      - myome:consent:HIE_ACCESS__TREATMENT
+      - myome:consent:CONTACT__RESEARCH_OPPORTUNITIES
+      - myome:consent:CONTACT__TRANSACTIONAL_SMS
+      - myome:consent:CONTACT__MARKETING
+    Product:
+      type: object
+      required:
+      - product_id
+      properties:
+        description:
+          type:
+          - string
+          - 'null'
+          description: Description of analysis product
+        name:
+          type:
+          - string
+          - 'null'
+          description: Short analysis product name
+        product_id:
+          $ref: '#/components/schemas/ProductId'
   responses:
     ProductListResponse:
       description: List of products
@@ -154,44 +192,6 @@ components:
           - - consent_uri: myome:consent:GENERAL-0.0.1
               name: MyOme General Consent
               consent_text: Example consent text
-  schemas:
-    ProductId:
-      type: string
-      description: A reference to an ordered product.
-      pattern: ^PR-?\d+$
-      examples:
-      - PR-0123456
-      - PR0123456
-    Product:
-      type: object
-      required:
-      - product_id
-      properties:
-        description:
-          type:
-          - string
-          - 'null'
-          description: Description of analysis product
-        name:
-          type:
-          - string
-          - 'null'
-          description: Short analysis product name
-        product_id:
-          $ref: '#/components/schemas/ProductId'
-    ConsentUri:
-      type: string
-      pattern: ^myome:consent:[A-Z_0-9]+(-\d+\.\d+\.\d+)?(-dev\.\d+)?$
-      examples:
-      - myome:consent:GENERAL-0.1.4
-      - myome:consent:PR2008-0.0.1
-      - myome:consent:DNAVISIT
-      - myome:consent:PRODUCT_NOTIFICATIONS-0.0.1
-      - myome:consent:PR5004-0.0.1-dev.0
-      - myome:consent:HIE_ACCESS__TREATMENT
-      - myome:consent:CONTACT__RESEARCH_OPPORTUNITIES
-      - myome:consent:CONTACT__TRANSACTIONAL_SMS
-      - myome:consent:CONTACT__MARKETING
   securitySchemes:
     jwt:
       type: http

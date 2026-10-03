@@ -75,6 +75,67 @@ paths:
       - Institutional Interface
       x-private: false
 components:
+  requestBodies:
+    InstitutionalCampaignIndividualPost:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            properties:
+              first:
+                type: string
+              last:
+                type: string
+              email:
+                type: string
+              phone:
+                type: string
+              street_address_1:
+                type: string
+              street_address_2:
+                type: string
+              city:
+                type: string
+              region:
+                type: string
+              postal_code:
+                type: string
+              dob:
+                type: string
+              sex:
+                type: string
+                enum:
+                - MALE
+                - FEMALE
+              external_member_id:
+                type: string
+              external_group_id:
+                type: string
+              removed:
+                type:
+                - boolean
+                - 'null'
+            required:
+            - first
+            - last
+            - email
+            - dob
+          example:
+          - first: John
+            last: Doe
+            email: john.doe@example.com
+            phone: 123-456-7890
+            street_address_1: 123 Main St
+            street_address_2: Apt 1
+            city: Anytown
+            region: CA
+            postal_code: '12345'
+            dob: '1990-01-01'
+            sex: MALE
+            external_member_id: '1234567890'
+            external_group_id: '1234567890'
   schemas:
     Institution:
       $schema: https://json-schema.org/draft/2020-12/schema
@@ -102,324 +163,6 @@ components:
           items:
             $ref: '#/components/schemas/CLIANumber'
       additionalProperties: false
-    DNAVisitServiceType:
-      description: Pre- and post-test service types offered by DNAVisit
-      type: string
-      enum:
-      - PRE_TEST_REVIEW_ONLY
-      - PRE_TEST_COUNSELING
-      - POST_TEST_REVIEW_ONLY
-      - POST_TEST_COUNSELING
-    EmailAddress:
-      type: string
-      title: Email Address
-      format: email
-    ClinicalSummaryLetter:
-      type: object
-      description: '"Clinical summary letter provided by physician of record. Only relevant if physician of record services were requested."
-
-        '
-      properties:
-        completed_on:
-          allOf:
-          - $ref: '#/components/schemas/YMDDate'
-        description:
-          type:
-          - string
-          - 'null'
-        mimetype:
-          type:
-          - string
-          - 'null'
-        uri:
-          type:
-          - string
-          - 'null'
-    UTCTimestamp:
-      description: UTC timestamp in ISO-8601 format. e.g., `2018-11-13T20:20:39+00:00`
-      type: string
-      format: date-time
-      pattern: ^[12]\d{3}-[01]\d-[0123]\dT\d{2}:\d{2}:\d{2}\.?\d*[+-Z](\d{2}:\d{2})?$
-      examples:
-      - '2018-11-13T20:20:39+00:00'
-      - '2018-11-13T20:20:39.0123Z'
-    RequisitionOrderDetails:
-      type: object
-      properties:
-        order_id:
-          allOf:
-          - $ref: '#/components/schemas/OrderId'
-        product_id:
-          allOf:
-          - $ref: '#/components/schemas/ProductId'
-        product_name:
-          type:
-          - string
-          - 'null'
-        report_type:
-          allOf:
-          - $ref: '#/components/schemas/ReportType'
-        created_at:
-          allOf:
-          - $ref: '#/components/schemas/YMDDate'
-        reported_at:
-          allOf:
-          - $ref: '#/components/schemas/YMDDate'
-        status:
-          allOf:
-          - $ref: '#/components/schemas/ExternalOrderStatus'
-        results:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/ToplineFinding'
-    BiologicalRelationshipWithReverse:
-      description: Relationship to an individual including reverse relationships
-      type: string
-      enum:
-      - PARENT
-      - CHILD
-      - SIBLING
-    OrderId:
-      type: string
-      pattern: ^OR-?([a-z]{3,5}-?)?\d+$
-      examples:
-      - OR-0123456
-      - OR-dev-0123456
-      - OR0123456
-      - ORdev0123456
-    Name:
-      type: object
-      title: Name
-      additionalProperties: false
-      properties:
-        first:
-          type: string
-          title: First
-        middle:
-          type:
-          - string
-          - 'null'
-          title: Middle
-        last:
-          type: string
-          title: Last
-        credentials:
-          type:
-          - string
-          - 'null'
-          title: Credentials
-          description: e.g. M.D., Ph.D.
-      examples:
-      - first: Zaphod
-        middle: Vogon
-        last: Beeblebrox
-        credentials: M.D., Ph.D.
-    ProviderLicenseStatus:
-      type: string
-      enum:
-      - UNVERIFIED
-      - VERIFIED
-      - REVOKED
-      - DENIED
-    ClinicianReviewStatus:
-      type: string
-      enum:
-      - PENDING
-      - IN_REVIEW
-      - COMPLETED
-      - INELIGIBLE
-    ContactInfoOptional:
-      type: object
-      additionalProperties: false
-      properties:
-        address:
-          title: Address
-          oneOf:
-          - $ref: '#/components/schemas/AddressOptional'
-          - type: 'null'
-        email:
-          anyOf:
-          - $ref: '#/components/schemas/EmailAddress'
-          - const: ''
-          - type: 'null'
-        phone:
-          type:
-          - string
-          - 'null'
-          title: Phone Number
-        fax:
-          type:
-          - string
-          - 'null'
-          title: Fax Number
-    BiologicalSex:
-      description: Sex assigned at birth
-      type: string
-      enum:
-      - FEMALE
-      - MALE
-      - OTHER
-    PhoneNumber:
-      type: string
-      pattern: ^\+?\d{1,4}?[-\s]?\(?\d{1,3}?\)?[-\s]?\d{1,4}[-\s]?\d{1,9}?$
-      examples:
-      - '+919367788755'
-      - '8989829304'
-      - '+16308520397'
-      - 786-307-3615
-      - +1-555-555-5555
-    ReportType:
-      type: string
-      enum:
-      - BASELINE_RISK
-      - MONOGENIC
-      - NDD_CNA
-      - RARE_DISEASE
-      - PGX
-      - PRS
-      - FAMILY_VARIANT_TESTING
-      - DATA_ONLY
-      - CLINICAL_RISK_ONLY
-      - CANCELED
-    DnavisitServiceRequest:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: DnavisitServiceRequest
-      type: object
-      properties:
-        requisition_id:
-          $ref: '#/components/schemas/RequisitionId'
-        appointment_url:
-          type: string
-          format: uri
-          description: Link to a scheduled genetic counseling appointment
-        appointment_date:
-          $ref: '#/components/schemas/UTCTimestamp'
-        access_code:
-          type: string
-          description: Access code required to schedule new genetic counseling appointments
-        external_status:
-          type: string
-        service_type:
-          $ref: '#/components/schemas/DNAVisitServiceType'
-        requested_on:
-          $ref: '#/components/schemas/Date'
-        completed_on:
-          $ref: '#/components/schemas/Date'
-        dnavisit_order_id:
-          type: string
-      additionalProperties: false
-    YMDDate:
-      type: string
-      pattern: '[12]\d{3}-[01]\d-[0123]\d'
-      example: '1999-12-31'
-    Demographics:
-      type: object
-      title: Demographics
-      properties:
-        dob:
-          title: Date of Birth
-          description: mm/dd/yyyy
-          $ref: '#/components/schemas/Date'
-        sex:
-          title: Sex
-          $ref: '#/components/schemas/BiologicalSex'
-        gender:
-          $ref: '#/components/schemas/Gender'
-    ClinicId:
-      type: string
-      pattern: ^CL-?([a-z]{3,5}-?)?\d+$
-      examples:
-      - CL-0123456
-      - CL-dev-123456
-      - CL0123456
-      - CLdev123456
-    Gender:
-      description: "Cultural/social gender; unconstrained string\nSources:\n  * https://www.csusm.edu/ipa/surveys/inclusive-language-guidelines.html"
-      type: string
-      enum:
-      - CISGENDER_MAN
-      - CISGENDER_WOMAN
-      - NO_RESPONSE
-      - NON_BINARY
-      - TRANSGENDER_MAN
-      - TRANSGENDER_WOMAN
-    RerequisitionType:
-      type: string
-      enum:
-      - NEW_ORDER
-      - REANALYSIS
-    UUID:
-      description: Python UUID
-      type: string
-      pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}
-      examples:
-      - 90cd1561-bcc4-46bc-9ba2-19bb2521a28e
-      - c2a78d62-969f-455e-8b8f-bd5f0efd9273
-    FVTRequisitionDetails:
-      type: object
-      additionalProperties: false
-      properties:
-        source_requisition:
-          type:
-          - string
-          - 'null'
-          description: 'The identifier of the source requisition for FVT orders.
-
-            '
-        source_relationship:
-          type:
-          - string
-          - 'null'
-          description: 'The relationship of the source requisition to the current requisition.
-
-            '
-        variants:
-          type:
-          - array
-          - 'null'
-          items:
-            type: object
-            properties:
-              enum:
-                type:
-                - string
-                - 'null'
-                description: 'The enum value of the variant.
-
-                  '
-              title:
-                type:
-                - string
-                - 'null'
-                description: 'The display value of the variant.
-
-                  '
-    SubjectOptionalAddress:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: SubjectOptionalAddress
-      type: object
-      properties:
-        name:
-          oneOf:
-          - $ref: '#/components/schemas/Name'
-          - type: 'null'
-        contact_info:
-          type: array
-          items:
-            $ref: '#/components/schemas/ContactInfoOptional'
-        demographics:
-          oneOf:
-          - $ref: '#/components/schemas/Demographics'
-          - type: 'null'
-    NPI:
-      type: string
-      title: NPI
-      pattern: ^\d{9,10}$
-      examples:
-      - 012345678
-      - 0123456789
     AddressOptional:
       type: object
       additionalProperties: false
@@ -464,6 +207,71 @@ components:
         region: CA
         postal_code: '94070'
         country: US
+    ConsentUri:
+      type: string
+      pattern: ^myome:consent:[A-Z_0-9]+(-\d+\.\d+\.\d+)?(-dev\.\d+)?$
+      examples:
+      - myome:consent:GENERAL-0.1.4
+      - myome:consent:PR2008-0.0.1
+      - myome:consent:DNAVISIT
+      - myome:consent:PRODUCT_NOTIFICATIONS-0.0.1
+      - myome:consent:PR5004-0.0.1-dev.0
+      - myome:consent:HIE_ACCESS__TREATMENT
+      - myome:consent:CONTACT__RESEARCH_OPPORTUNITIES
+      - myome:consent:CONTACT__TRANSACTIONAL_SMS
+      - myome:consent:CONTACT__MARKETING
+    PRSToplineFinding:
+      type: string
+      enum:
+      - AVERAGE_RISK
+      - ELEVATED_RISK
+      - HIGH_RISK
+      - LOW_RISK
+      - INTERMEDIATE_RISK
+      - BORDERLINE_RISK
+      - NOT_ANALYZED
+      - INCREASED_RISK
+      - NOT_INCREASED_RISK
+    IndividualId:
+      type: string
+      pattern: ^IN-?([a-z]{3,5}-?)?\d+$
+      examples:
+      - IN-dev-123456
+      - IN-123456
+      - INdev123456
+      - IN123456
+    Gender:
+      description: "Cultural/social gender; unconstrained string\nSources:\n  * https://www.csusm.edu/ipa/surveys/inclusive-language-guidelines.html"
+      type: string
+      enum:
+      - CISGENDER_MAN
+      - CISGENDER_WOMAN
+      - NO_RESPONSE
+      - NON_BINARY
+      - TRANSGENDER_MAN
+      - TRANSGENDER_WOMAN
+    ToplineFinding:
+      properties:
+        finding:
+          title: Finding
+          anyOf:
+          - $ref: '#/components/schemas/MonogenicToplineFinding'
+          - $ref: '#/components/schemas/PRSToplineFinding'
+          - $ref: '#/components/schemas/PGxImpactToplineFinding'
+          - $ref: '#/components/schemas/RareDiseaseToplineFinding'
+          type: string
+        text:
+          title: Text
+          type: string
+      required:
+      - finding
+      - text
+    RareDiseaseToplineFinding:
+      type: string
+      enum:
+      - POSITIVE
+      - NEGATIVE
+      - UNCERTAIN
     Clinician:
       $schema: https://json-schema.org/draft/2020-12/schema
       title: Clinician
@@ -517,9 +325,196 @@ components:
           type: boolean
           description: Whether the clinician is active (not archived and in_use).
       additionalProperties: false
+    ClinicId:
+      type: string
+      pattern: ^CL-?([a-z]{3,5}-?)?\d+$
+      examples:
+      - CL-0123456
+      - CL-dev-123456
+      - CL0123456
+      - CLdev123456
+    ClinicianId:
+      title: Clinician ID
+      type: string
+      pattern: ^CN-?([a-z]{3,5}-?)?\d+$
+      examples:
+      - CN-0123456
+      - CN-dev-0123456
+      - CN0123456
+      - CNdev0123456
+    UTCTimestamp:
+      description: UTC timestamp in ISO-8601 format. e.g., `2018-11-13T20:20:39+00:00`
+      type: string
+      format: date-time
+      pattern: ^[12]\d{3}-[01]\d-[0123]\dT\d{2}:\d{2}:\d{2}\.?\d*[+-Z](\d{2}:\d{2})?$
+      examples:
+      - '2018-11-13T20:20:39+00:00'
+      - '2018-11-13T20:20:39.0123Z'
+    BiologicalSex:
+      description: Sex assigned at birth
+      type: string
+      enum:
+      - FEMALE
+      - MALE
+      - OTHER
+    RequisitionOrderDetails:
+      type: object
+      properties:
+        order_id:
+          allOf:
+          - $ref: '#/components/schemas/OrderId'
+        product_id:
+          allOf:
+          - $ref: '#/components/schemas/ProductId'
+        product_name:
+          type:
+          - string
+          - 'null'
+        report_type:
+          allOf:
+          - $ref: '#/components/schemas/ReportType'
+        created_at:
+          allOf:
+          - $ref: '#/components/schemas/YMDDate'
+        reported_at:
+          allOf:
+          - $ref: '#/components/schemas/YMDDate'
+        status:
+          allOf:
+          - $ref: '#/components/schemas/ExternalOrderStatus'
+        results:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/ToplineFinding'
     Date:
       type: string
       format: date
+    ContactInfoOptional:
+      type: object
+      additionalProperties: false
+      properties:
+        address:
+          title: Address
+          oneOf:
+          - $ref: '#/components/schemas/AddressOptional'
+          - type: 'null'
+        email:
+          anyOf:
+          - $ref: '#/components/schemas/EmailAddress'
+          - const: ''
+          - type: 'null'
+        phone:
+          type:
+          - string
+          - 'null'
+          title: Phone Number
+        fax:
+          type:
+          - string
+          - 'null'
+          title: Fax Number
+    DNAVisitServiceType:
+      description: Pre- and post-test service types offered by DNAVisit
+      type: string
+      enum:
+      - PRE_TEST_REVIEW_ONLY
+      - PRE_TEST_COUNSELING
+      - POST_TEST_REVIEW_ONLY
+      - POST_TEST_COUNSELING
+    Demographics:
+      type: object
+      title: Demographics
+      properties:
+        dob:
+          title: Date of Birth
+          description: mm/dd/yyyy
+          $ref: '#/components/schemas/Date'
+        sex:
+          title: Sex
+          $ref: '#/components/schemas/BiologicalSex'
+        gender:
+          $ref: '#/components/schemas/Gender'
+    ProviderLicenseStatus:
+      type: string
+      enum:
+      - UNVERIFIED
+      - VERIFIED
+      - REVOKED
+      - DENIED
+    DnavisitServiceRequest:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: DnavisitServiceRequest
+      type: object
+      properties:
+        requisition_id:
+          $ref: '#/components/schemas/RequisitionId'
+        appointment_url:
+          type: string
+          format: uri
+          description: Link to a scheduled genetic counseling appointment
+        appointment_date:
+          $ref: '#/components/schemas/UTCTimestamp'
+        access_code:
+          type: string
+          description: Access code required to schedule new genetic counseling appointments
+        external_status:
+          type: string
+        service_type:
+          $ref: '#/components/schemas/DNAVisitServiceType'
+        requested_on:
+          $ref: '#/components/schemas/Date'
+        completed_on:
+          $ref: '#/components/schemas/Date'
+        dnavisit_order_id:
+          type: string
+      additionalProperties: false
+    ClinicalSummaryLetter:
+      type: object
+      description: '"Clinical summary letter provided by physician of record. Only relevant if physician of record services were requested."
+
+        '
+      properties:
+        completed_on:
+          allOf:
+          - $ref: '#/components/schemas/YMDDate'
+        description:
+          type:
+          - string
+          - 'null'
+        mimetype:
+          type:
+          - string
+          - 'null'
+        uri:
+          type:
+          - string
+          - 'null'
+    SubjectOptionalAddress:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: SubjectOptionalAddress
+      type: object
+      properties:
+        name:
+          oneOf:
+          - $ref: '#/components/schemas/Name'
+          - type: 'null'
+        contact_info:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContactInfoOptional'
+        demographics:
+          oneOf:
+          - $ref: '#/components/schemas/Demographics'
+          - type: 'null'
+    ProductId:
+      type: string
+      description: A reference to an ordered product.
+      pattern: ^PR-?\d+$
+      examples:
+      - PR-0123456
+      - PR0123456
     PGxImpactToplineFinding:
       type: string
       enum:
@@ -527,20 +522,61 @@ components:
       - ALTERED_DOSE
       - MAJOR_IMPACT
       - CONTRAINDICATED
-    RequisitionId:
+    YMDDate:
       type: string
-      pattern: ^RQ-?([a-z]{3,5}-?)?\d+$
-      examples:
-      - RQ-0123456
-      - RQ-dev-0123456
-      - RQ0123456
-      - RQdev0123456
-    RareDiseaseToplineFinding:
+      pattern: '[12]\d{3}-[01]\d-[0123]\d'
+      example: '1999-12-31'
+    RerequisitionType:
       type: string
       enum:
-      - POSITIVE
-      - NEGATIVE
-      - UNCERTAIN
+      - NEW_ORDER
+      - REANALYSIS
+    Name:
+      type: object
+      title: Name
+      additionalProperties: false
+      properties:
+        first:
+          type: string
+          title: First
+        middle:
+          type:
+          - string
+          - 'null'
+          title: Middle
+        last:
+          type: string
+          title: Last
+        credentials:
+          type:
+          - string
+          - 'null'
+          title: Credentials
+          description: e.g. M.D., Ph.D.
+      examples:
+      - first: Zaphod
+        middle: Vogon
+        last: Beeblebrox
+        credentials: M.D., Ph.D.
+    ClinicianReviewStatus:
+      type: string
+      enum:
+      - PENDING
+      - IN_REVIEW
+      - COMPLETED
+      - INELIGIBLE
+    OrganizationProviderRole:
+      type: string
+      enum:
+      - ADMIN
+      - DELEGATE
+      - CLINICIAN
+    CLIANumber:
+      type: string
+      pattern: ^\d{2}D[A-Za-z0-9]{7}$
+      examples:
+      - 12D3ad2R7q
+      - 34D31532S5
     Campaign:
       $schema: https://json-schema.org/draft/2020-12/schema
       title: Campaign
@@ -565,81 +601,14 @@ components:
         is_active:
           type: boolean
       additionalProperties: false
-    PRSToplineFinding:
+    RequisitionId:
       type: string
-      enum:
-      - AVERAGE_RISK
-      - ELEVATED_RISK
-      - HIGH_RISK
-      - LOW_RISK
-      - INTERMEDIATE_RISK
-      - BORDERLINE_RISK
-      - NOT_ANALYZED
-      - INCREASED_RISK
-      - NOT_INCREASED_RISK
-    ConsentUri:
-      type: string
-      pattern: ^myome:consent:[A-Z_0-9]+(-\d+\.\d+\.\d+)?(-dev\.\d+)?$
+      pattern: ^RQ-?([a-z]{3,5}-?)?\d+$
       examples:
-      - myome:consent:GENERAL-0.1.4
-      - myome:consent:PR2008-0.0.1
-      - myome:consent:DNAVISIT
-      - myome:consent:PRODUCT_NOTIFICATIONS-0.0.1
-      - myome:consent:PR5004-0.0.1-dev.0
-      - myome:consent:HIE_ACCESS__TREATMENT
-      - myome:consent:CONTACT__RESEARCH_OPPORTUNITIES
-      - myome:consent:CONTACT__TRANSACTIONAL_SMS
-      - myome:consent:CONTACT__MARKETING
-    MonogenicToplineFinding:
-      type: string
-      enum:
-      - POSITIVE
-      - NEGATIVE
-    OrganizationProviderRole:
-      type: string
-      enum:
-      - ADMIN
-      - DELEGATE
-      - CLINICIAN
-    ToplineFinding:
-      properties:
-        finding:
-          title: Finding
-          anyOf:
-          - $ref: '#/components/schemas/MonogenicToplineFinding'
-          - $ref: '#/components/schemas/PRSToplineFinding'
-          - $ref: '#/components/schemas/PGxImpactToplineFinding'
-          - $ref: '#/components/schemas/RareDiseaseToplineFinding'
-          type: string
-        text:
-          title: Text
-          type: string
-      required:
-      - finding
-      - text
-    ClinicianId:
-      title: Clinician ID
-      type: string
-      pattern: ^CN-?([a-z]{3,5}-?)?\d+$
-      examples:
-      - CN-0123456
-      - CN-dev-0123456
-      - CN0123456
-      - CNdev0123456
-    IndividualId:
-      type: string
-      pattern: ^IN-?([a-z]{3,5}-?)?\d+$
-      examples:
-      - IN-dev-123456
-      - IN-123456
-      - INdev123456
-      - IN123456
-    CLIANumber:
-      type: string
-      pattern: ^\d{2}D[A-Za-z0-9]{7}$
-      examples:
-      - 12D3ad2R7q
-      - 34D31532S5
+      - RQ-0123456
+      - RQ-dev-0123456
+      - RQ0123456
+      - RQdev0123456
     CaseRequisition:
       type: object
       properties:
@@ -668,13 +637,6 @@ components:
           - 'null'
           items:
             $ref: '#/components/schemas/RequisitionOrderDetails'
-    ProductId:
-      type: string
-      description: A reference to an ordered product.
-      pattern: ^PR-?\d+$
-      examples:
-      - PR-0123456
-      - PR0123456
     ExternalOrderStatus:
       type: string
       enum:
@@ -688,6 +650,105 @@ components:
       - COMPLETED
       - CANCELED
       - FAILED
+    ReportType:
+      type: string
+      enum:
+      - BASELINE_RISK
+      - MONOGENIC
+      - NDD_CNA
+      - RARE_DISEASE
+      - PGX
+      - PRS
+      - FAMILY_VARIANT_TESTING
+      - DATA_ONLY
+      - CLINICAL_RISK_ONLY
+      - CANCELED
+    UUID:
+      description: Python UUID
+      type: string
+      pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}
+      examples:
+      - 90cd1561-bcc4-46bc-9ba2-19bb2521a28e
+      - c2a78d62-969f-455e-8b8f-bd5f0efd9273
+    FVTRequisitionDetails:
+      type: object
+      additionalProperties: false
+      properties:
+        source_requisition:
+          type:
+          - string
+          - 'null'
+          description: 'The identifier of the source requisition for FVT orders.
+
+            '
+        source_relationship:
+          type:
+          - string
+          - 'null'
+          description: 'The relationship of the source requisition to the current requisition.
+
+            '
+        variants:
+          type:
+          - array
+          - 'null'
+          items:
+            type: object
+            properties:
+              enum:
+                type:
+                - string
+                - 'null'
+                description: 'The enum value of the variant.
+
+                  '
+              title:
+                type:
+                - string
+                - 'null'
+                description: 'The display value of the variant.
+
+                  '
+    EmailAddress:
+      type: string
+      title: Email Address
+      format: email
+    BiologicalRelationshipWithReverse:
+      description: Relationship to an individual including reverse relationships
+      type: string
+      enum:
+      - PARENT
+      - CHILD
+      - SIBLING
+    OrderId:
+      type: string
+      pattern: ^OR-?([a-z]{3,5}-?)?\d+$
+      examples:
+      - OR-0123456
+      - OR-dev-0123456
+      - OR0123456
+      - ORdev0123456
+    NPI:
+      type: string
+      title: NPI
+      pattern: ^\d{9,10}$
+      examples:
+      - 012345678
+      - 0123456789
+    PhoneNumber:
+      type: string
+      pattern: ^\+?\d{1,4}?[-\s]?\(?\d{1,3}?\)?[-\s]?\d{1,4}[-\s]?\d{1,9}?$
+      examples:
+      - '+919367788755'
+      - '8989829304'
+      - '+16308520397'
+      - 786-307-3615
+      - +1-555-555-5555
+    MonogenicToplineFinding:
+      type: string
+      enum:
+      - POSITIVE
+      - NEGATIVE
   responses:
     StructuredSuccess:
       description: Generic structured success message
@@ -703,6 +764,63 @@ components:
                 type: string
           example:
           - success: The operation was successful
+    StructuredError:
+      description: Generic structured error message
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            required:
+            - title
+            - detail
+            properties:
+              title:
+                type: string
+              detail:
+                type: string
+              code:
+                type:
+                - string
+                - 'null'
+                description: The type of error that occurred
+              errors:
+                type:
+                - object
+                - 'null'
+                additionalProperties: true
+                description: Dictionary of field names and error messages
+              extra:
+                oneOf:
+                - type: object
+                  additionalProperties: true
+                - type: string
+          examples:
+            simple_error:
+              value:
+                detail: There was an error validating the request
+                title: Validation error
+            flat_field_errors:
+              value:
+                code: validation_error
+                detail: Validation error
+                title: Validation error
+                errors:
+                  field1: field is required
+            nested_field_errors:
+              value:
+                code: validation_error
+                detail: Validation error
+                title: Validation error
+                errors:
+                  field1: field is required
+                  field2:
+                    field3: field is invalid
+            no_field_errors:
+              value:
+                code: validation_error
+                detail: Validation error
+                title: Validation error
     RequisitionResponse:
       description: Clinician, consent(s), order(s), and subject information associated with a given requisition ID. Status updates are provided for each individual order.
       content:
@@ -923,124 +1041,6 @@ components:
               variants:
               - value: '1'
                 display: BTD NM_007294.4(BRCA1):c.5585A>G NP_009225.1:p.His1862Arg (Pathogenic)
-    StructuredError:
-      description: Generic structured error message
-      content:
-        application/json:
-          schema:
-            type: object
-            additionalProperties: false
-            required:
-            - title
-            - detail
-            properties:
-              title:
-                type: string
-              detail:
-                type: string
-              code:
-                type:
-                - string
-                - 'null'
-                description: The type of error that occurred
-              errors:
-                type:
-                - object
-                - 'null'
-                additionalProperties: true
-                description: Dictionary of field names and error messages
-              extra:
-                oneOf:
-                - type: object
-                  additionalProperties: true
-                - type: string
-          examples:
-            simple_error:
-              value:
-                detail: There was an error validating the request
-                title: Validation error
-            flat_field_errors:
-              value:
-                code: validation_error
-                detail: Validation error
-                title: Validation error
-                errors:
-                  field1: field is required
-            nested_field_errors:
-              value:
-                code: validation_error
-                detail: Validation error
-                title: Validation error
-                errors:
-                  field1: field is required
-                  field2:
-                    field3: field is invalid
-            no_field_errors:
-              value:
-                code: validation_error
-                detail: Validation error
-                title: Validation error
-  requestBodies:
-    InstitutionalCampaignIndividualPost:
-      required: true
-      content:
-        application/json:
-          schema:
-            type: object
-            additionalProperties: false
-            properties:
-              first:
-                type: string
-              last:
-                type: string
-              email:
-                type: string
-              phone:
-                type: string
-              street_address_1:
-                type: string
-              street_address_2:
-                type: string
-              city:
-                type: string
-              region:
-                type: string
-              postal_code:
-                type: string
-              dob:
-                type: string
-              sex:
-                type: string
-                enum:
-                - MALE
-                - FEMALE
-              external_member_id:
-                type: string
-              external_group_id:
-                type: string
-              removed:
-                type:
-                - boolean
-                - 'null'
-            required:
-            - first
-            - last
-            - email
-            - dob
-          example:
-          - first: John
-            last: Doe
-            email: john.doe@example.com
-            phone: 123-456-7890
-            street_address_1: 123 Main St
-            street_address_2: Apt 1
-            city: Anytown
-            region: CA
-            postal_code: '12345'
-            dob: '1990-01-01'
-            sex: MALE
-            external_member_id: '1234567890'
-            external_group_id: '1234567890'
   securitySchemes:
     jwt:
       type: http

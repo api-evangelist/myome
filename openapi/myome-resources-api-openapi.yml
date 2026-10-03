@@ -59,6 +59,13 @@ paths:
           $ref: '#/components/responses/StructuredError'
 components:
   schemas:
+    ProductId:
+      type: string
+      description: A reference to an ordered product.
+      pattern: ^PR-?\d+$
+      examples:
+      - PR-0123456
+      - PR0123456
     ConsentUri:
       type: string
       pattern: ^myome:consent:[A-Z_0-9]+(-\d+\.\d+\.\d+)?(-dev\.\d+)?$
@@ -89,13 +96,6 @@ components:
           description: Short analysis product name
         product_id:
           $ref: '#/components/schemas/ProductId'
-    ProductId:
-      type: string
-      description: A reference to an ordered product.
-      pattern: ^PR-?\d+$
-      examples:
-      - PR-0123456
-      - PR0123456
   responses:
     ProductListResponse:
       description: List of products
@@ -109,32 +109,6 @@ components:
           - - description: MyOme product for analysis of ACMG Secondary Findings Version 3.
               name: MyOme Personal Genome, Proactive Health, 81 Genes
               product_id: PR-2019
-    ConsentListResponse:
-      description: List of general and product specific consents
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              type: object
-              additionalProperties: false
-              properties:
-                consent_uri:
-                  allOf:
-                  - $ref: '#/components/schemas/ConsentUri'
-                name:
-                  type:
-                  - string
-                  - 'null'
-                  description: Consent name
-                consent_text:
-                  type:
-                  - string
-                  - 'null'
-          example:
-          - - consent_uri: myome:consent:GENERAL-0.0.1
-              name: MyOme General Consent
-              consent_text: Example consent text
     StructuredError:
       description: Generic structured error message
       content:
@@ -192,6 +166,32 @@ components:
                 code: validation_error
                 detail: Validation error
                 title: Validation error
+    ConsentListResponse:
+      description: List of general and product specific consents
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              additionalProperties: false
+              properties:
+                consent_uri:
+                  allOf:
+                  - $ref: '#/components/schemas/ConsentUri'
+                name:
+                  type:
+                  - string
+                  - 'null'
+                  description: Consent name
+                consent_text:
+                  type:
+                  - string
+                  - 'null'
+          example:
+          - - consent_uri: myome:consent:GENERAL-0.0.1
+              name: MyOme General Consent
+              consent_text: Example consent text
   securitySchemes:
     jwt:
       type: http

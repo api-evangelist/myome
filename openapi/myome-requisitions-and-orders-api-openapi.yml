@@ -164,768 +164,6 @@ paths:
       - Requisitions and Orders
 components:
   schemas:
-    ContactInfo:
-      type: object
-      additionalProperties: false
-      properties:
-        address:
-          title: Address
-          $ref: '#/components/schemas/Address'
-        email:
-          $ref: '#/components/schemas/EmailAddress'
-        phone:
-          type: string
-          title: Phone Number
-        fax:
-          type:
-          - string
-          - 'null'
-          title: Fax Number
-    breast_density_measure:
-      title: Breast Density Measure
-      type: string
-      anyOf:
-      - title: Volpara® Volumetric Density (%)
-        type: string
-        enum:
-        - VOLPARA
-      - title: VAS Percentage Density
-        type: string
-        enum:
-        - VAS
-      - title: BI-RADS® ATLAS Density
-        type: string
-        enum:
-        - BIRADS
-      - title: Not Available
-        type: string
-        enum:
-        - NOT_AVAILABLE
-    AddressOptional:
-      type: object
-      additionalProperties: false
-      properties:
-        street_address:
-          type:
-          - string
-          - 'null'
-          title: Street Address
-          description: Number and street
-        street_address_2:
-          type:
-          - string
-          - 'null'
-          title: Street Address Line 2
-        city:
-          type:
-          - string
-          - 'null'
-          title: City
-        region:
-          type:
-          - string
-          - 'null'
-          title: Region
-          description: State, province, or other country-specific region
-        postal_code:
-          type:
-          - string
-          - 'null'
-          title: Postal Code
-          description: Country-specific code for geographic districts
-        country:
-          type:
-          - string
-          - 'null'
-          title: Country
-          description: Country name or abbreviation
-      examples:
-      - street_address: 930 Brittan Ave
-        city: San Carlos
-        region: CA
-        postal_code: '94070'
-        country: US
-    FastingGlucoseLevel:
-      title: Fasting Glucose Level (mg/dL)
-      description: must be between 50 - 250gs; levels >250 (diabetic) not eligible
-      type: number
-      minimum: 50
-      maximum: 250
-      example: 85.5
-    Gender:
-      description: "Cultural/social gender; unconstrained string\nSources:\n  * https://www.csusm.edu/ipa/surveys/inclusive-language-guidelines.html"
-      type: string
-      enum:
-      - CISGENDER_MAN
-      - CISGENDER_WOMAN
-      - NO_RESPONSE
-      - NON_BINARY
-      - TRANSGENDER_MAN
-      - TRANSGENDER_WOMAN
-    smoking:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Smoking
-      type: object
-      required:
-      - smoking_status
-      properties:
-        smoking_status:
-          $ref: '#/components/schemas/SmokingStatus'
-      additionalProperties: false
-      definitions:
-        SmokingStatus:
-          title: Current Smoking Status
-          type: string
-          oneOf:
-          - type: string
-            title: Current Smoker
-            enum:
-            - CURRENT
-          - type: string
-            title: Former Smoker
-            enum:
-            - FORMER
-          - type: string
-            title: Non-Smoker
-            enum:
-            - NEVER
-    age_at_menopause:
-      title: Age At Menopause
-      description: Leave blank if unknown.
-      type: integer
-      minimum: 0
-      maximum: 99
-    RareDiseaseToplineFinding:
-      type: string
-      enum:
-      - POSITIVE
-      - NEGATIVE
-      - UNCERTAIN
-    cholesterol:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Cholesterol
-      type: object
-      required:
-      - total_cholesterol
-      - hdl_cholesterol
-      properties:
-        total_cholesterol:
-          $ref: '#/components/schemas/TotalCholesterol'
-        hdl_cholesterol:
-          $ref: '#/components/schemas/HDLCholesterol'
-      additionalProperties: false
-      definitions:
-        TotalCholesterol:
-          title: Total Cholesterol Level (mg/dL)
-          description: must be between 130 - 320
-          type: number
-          minimum: 130
-          maximum: 320
-        HDLCholesterol:
-          title: HDL Cholesterol Level (mg/dL)
-          description: must be between 20 - 100
-          type: number
-          minimum: 20
-          maximum: 100
-    DiastolicBloodPressure:
-      title: Diastolic Blood Pressure (mm HG)
-      description: must be between 60 - 130
-      type: number
-      minimum: 60
-      maximum: 130
-    Address:
-      type: object
-      additionalProperties: false
-      properties:
-        street_address:
-          type: string
-          title: Street Address
-          description: Number and street
-        street_address_2:
-          type:
-          - string
-          - 'null'
-          title: Street Address Line 2
-        city:
-          type: string
-          title: City
-        region:
-          type: string
-          title: Region
-          description: State, province, or other country-specific region
-        postal_code:
-          type: string
-          title: Postal Code
-          description: Country-specific code for geographic districts
-        country:
-          type:
-          - string
-          - 'null'
-          title: Country
-          description: Country name or abbreviation
-      required:
-      - street_address
-      - city
-      - region
-      - postal_code
-      examples:
-      - street_address: 930 Brittan Ave
-        city: San Carlos
-        region: CA
-        postal_code: '94070'
-        country: US
-    HDLCholesterol:
-      title: HDL Cholesterol Level (mg/dL)
-      description: must be between 20 - 100
-      type: number
-      minimum: 20
-      maximum: 100
-    Demographics:
-      type: object
-      title: Demographics
-      properties:
-        dob:
-          title: Date of Birth
-          description: mm/dd/yyyy
-          $ref: '#/components/schemas/Date'
-        sex:
-          title: Sex
-          $ref: '#/components/schemas/BiologicalSex'
-        gender:
-          $ref: '#/components/schemas/Gender'
-    RequisitionToplineFinding:
-      type: string
-      enum:
-      - POSITIVE
-      - NEGATIVE
-      - UNCERTAIN
-      - HIGH_RISK
-      - INTERMEDIATE_RISK
-      - ELEVATED_RISK
-      - BORDERLINE_RISK
-      - AVERAGE_RISK
-      - LOW_RISK
-      - INCREASED_RISK
-      - NOT_INCREASED_RISK
-      - NOT_ANALYZED
-      - MINIMAL_IMPACT
-      - MAJOR_IMPACT
-      - ALTERED_DOSE
-      - CONTRAINDICATED
-    age_at_ovarian_cancer:
-      title: Age At Which They Developed Ovarian Cancer?
-      description: If unknown, then their current age or the age at which they died.
-      type: integer
-      minimum: 0
-    ProviderLicenseStatus:
-      type: string
-      enum:
-      - UNVERIFIED
-      - VERIFIED
-      - REVOKED
-      - DENIED
-    DnavisitServiceRequest:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: DnavisitServiceRequest
-      type: object
-      properties:
-        requisition_id:
-          $ref: '#/components/schemas/RequisitionId'
-        appointment_url:
-          type: string
-          format: uri
-          description: Link to a scheduled genetic counseling appointment
-        appointment_date:
-          $ref: '#/components/schemas/UTCTimestamp'
-        access_code:
-          type: string
-          description: Access code required to schedule new genetic counseling appointments
-        external_status:
-          type: string
-        service_type:
-          $ref: '#/components/schemas/DNAVisitServiceType'
-        requested_on:
-          $ref: '#/components/schemas/Date'
-        completed_on:
-          $ref: '#/components/schemas/Date'
-        dnavisit_order_id:
-          type: string
-      additionalProperties: false
-    length_of_time_taking_hormone_replacement_therapy:
-      title: Length Of Time Taking Hormone Replacement Therapy (HRT)
-      description: Round to the nearest decimal point (e.g. 4.5 years)
-      type: number
-      minimum: 0
-    SubjectOptionalAddress:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: SubjectOptionalAddress
-      type: object
-      properties:
-        name:
-          oneOf:
-          - $ref: '#/components/schemas/Name'
-          - type: 'null'
-        contact_info:
-          type: array
-          items:
-            $ref: '#/components/schemas/ContactInfoOptional'
-        demographics:
-          oneOf:
-          - $ref: '#/components/schemas/Demographics'
-          - type: 'null'
-    RerequisitionType:
-      type: string
-      enum:
-      - NEW_ORDER
-      - REANALYSIS
-    Name:
-      type: object
-      title: Name
-      additionalProperties: false
-      properties:
-        first:
-          type: string
-          title: First
-        middle:
-          type:
-          - string
-          - 'null'
-          title: Middle
-        last:
-          type: string
-          title: Last
-        credentials:
-          type:
-          - string
-          - 'null'
-          title: Credentials
-          description: e.g. M.D., Ph.D.
-      examples:
-      - first: Zaphod
-        middle: Vogon
-        last: Beeblebrox
-        credentials: M.D., Ph.D.
-    ClinicianReviewStatus:
-      type: string
-      enum:
-      - PENDING
-      - IN_REVIEW
-      - COMPLETED
-      - INELIGIBLE
-    weight:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Weight (kg)
-      description: Enter to two decimal points (e.g. 95.25)
-      type: number
-      minimum: 0
-      maximum: 500
-      example: 95.25
-    File:
-      type: object
-      required:
-      - uri
-      - mimetype
-      properties:
-        uri:
-          type: string
-        mimetype:
-          type: string
-        description:
-          type: string
-        sha512:
-          type: string
-          pattern: ^[0-9a-fA-F]{128}$
-        crc64nvme:
-          type: string
-          pattern: ^[A-Za-z0-9+/_-]{11}=$
-        sha256:
-          type: string
-          pattern: ^[0-9a-fA-F]{64}$
-      examples:
-      - uri: s3://somebucket/path/to/report.json
-        description: Report in JSON format
-        mimetype: application/json
-        sha512: 1b3c34b32bba4ece72a7b9a1ee53359fe7238be5986984463b5da41baf3b53bce66c87d7f5557021c553a1bbeac175eac2b4923329b993fba11a93502c256912
-      - uri: s3://somebucket/path/to/report.pdf
-        description: Report in PDF format
-        mimetype: application/pdf
-        sha512: cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e
-      - uri: s3://somebucket/path/to/SM123.R1.fastq.gz
-        description: R1 FastQ file
-        mimetype: application/x.seq-na-fastq;type=paired_end;direction=R1
-        sha512: 3ef109fe55e194a0f37b5936405dcf2b96ce7eeb8891d59650c708d26f256d018fd8f98c6efb7da8f85029a3708e34f86a54e700ba3b36fb0967aa869ed37915
-    ProductDataPR41034:
-      type: object
-      title: Inputs for IPRS PRC
-      additionalProperties: false
-      required:
-      - diagnosed_with_prostate_cancer
-      - prostate_cancer_family_history
-      properties:
-        diagnosed_with_prostate_cancer:
-          $ref: '#/components/schemas/diagnosed_with_prostate_cancer'
-        prostate_cancer_family_history:
-          $ref: '#/components/schemas/prostate_cancer_family_history'
-    age_at_first_birth:
-      title: Age At First Birth
-      description: Leave blank if unknown.
-      type: integer
-      minimum: 0
-      maximum: 99
-    had_ovarian_cancer:
-      title: Did They Have Ovarian Cancer?
-      $ref: '#/components/schemas/YesNoUnknown'
-    ExternalOrderStatus:
-      type: string
-      enum:
-      - SUBMITTED
-      - APPROVED
-      - DENIED
-      - AWAITING_SAMPLE
-      - ANALYZING
-      - REFERRAL_LAB_LD_REVIEW
-      - CLINICIAN_REVIEW
-      - COMPLETED
-      - CANCELED
-      - FAILED
-    genetic_testing:
-      title: Genetic Testing Of The Woman
-      $ref: '#/components/schemas/BreastCancerGeneticTesting'
-    OrderId:
-      type: string
-      pattern: ^OR-?([a-z]{3,5}-?)?\d+$
-      examples:
-      - OR-0123456
-      - OR-dev-0123456
-      - OR0123456
-      - ORdev0123456
-    Institution:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Institution
-      type: object
-      required:
-      - name
-      properties:
-        name:
-          type: string
-          examples:
-          - External Lab
-        auth_sub:
-          $ref: '#/components/schemas/UUID'
-        contact_info:
-          type: array
-          items:
-            type: object
-            properties:
-              phone:
-                $ref: '#/components/schemas/PhoneNumber'
-          maxItems: 1
-        clia_numbers:
-          type: array
-          items:
-            $ref: '#/components/schemas/CLIANumber'
-      additionalProperties: false
-    ConsentUri:
-      type: string
-      pattern: ^myome:consent:[A-Z_0-9]+(-\d+\.\d+\.\d+)?(-dev\.\d+)?$
-      examples:
-      - myome:consent:GENERAL-0.1.4
-      - myome:consent:PR2008-0.0.1
-      - myome:consent:DNAVISIT
-      - myome:consent:PRODUCT_NOTIFICATIONS-0.0.1
-      - myome:consent:PR5004-0.0.1-dev.0
-      - myome:consent:HIE_ACCESS__TREATMENT
-      - myome:consent:CONTACT__RESEARCH_OPPORTUNITIES
-      - myome:consent:CONTACT__TRANSACTIONAL_SMS
-      - myome:consent:CONTACT__MARKETING
-    history_of_atypical_hyperplasia:
-      title: History Of Atypical Hyperplasia
-      $ref: '#/components/schemas/YesNoUnknown'
-    LabReferral:
-      description: true if the order is being placed by a referring lab
-      type: boolean
-      enum:
-      - true
-    body_mass_index:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Body Mass Index
-      type: object
-      required:
-      - body_mass_index
-      properties:
-        body_mass_index:
-          $ref: '#/components/schemas/BodyMassIndex'
-      additionalProperties: false
-      definitions:
-        BodyMassIndex:
-          title: Body Mass Index (kg/m^2)
-          description: must be between 15 - 50
-          type: number
-          minimum: 15
-          maximum: 50
-          example: 22.5
-    BreastCancerGeneticTesting:
-      title: Breast Cancer Genetic Testing
-      type: string
-      anyOf:
-      - title: Never
-        type: string
-        enum:
-        - NEVER
-      - title: Test result negative
-        type: string
-        enum:
-        - NEGATIVE
-      - title: Positive in BRCA1
-        type: string
-        enum:
-        - BRCA1
-      - title: Positive in BRCA2
-        type: string
-        enum:
-        - BRCA2
-      - title: Unknown
-        type: string
-        enum:
-        - UNKNOWN
-    polygenic_snp_score:
-      title: Polygenic SNP Score
-      description: Log relative risk, decimal
-      type: number
-    ClinicianId:
-      title: Clinician ID
-      type: string
-      pattern: ^CN-?([a-z]{3,5}-?)?\d+$
-      examples:
-      - CN-0123456
-      - CN-dev-0123456
-      - CN0123456
-      - CNdev0123456
-    history_of_ovarian_cancer:
-      title: History Of Ovarian Cancer
-      $ref: '#/components/schemas/YesNoUnknown'
-    RequisitionOrderDetails:
-      type: object
-      properties:
-        order_id:
-          allOf:
-          - $ref: '#/components/schemas/OrderId'
-        product_id:
-          allOf:
-          - $ref: '#/components/schemas/ProductId'
-        product_name:
-          type:
-          - string
-          - 'null'
-        report_type:
-          allOf:
-          - $ref: '#/components/schemas/ReportType'
-        created_at:
-          allOf:
-          - $ref: '#/components/schemas/YMDDate'
-        reported_at:
-          allOf:
-          - $ref: '#/components/schemas/YMDDate'
-        status:
-          allOf:
-          - $ref: '#/components/schemas/ExternalOrderStatus'
-        results:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/ToplineFinding'
-    father_had_breast_cancer:
-      title: Has The Father Had Breast Cancer?
-      $ref: '#/components/schemas/YesNoUnknown'
-    history_of_lcis:
-      title: History Of LCIS
-      description: Lobular carcinoma in situ (LCIS)
-      $ref: '#/components/schemas/YesNoUnknown'
-    diagnosed_with_coronary_artery_disease:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Has the Patient Been Diagnosed With Coronary Artery Disease?
-      type: boolean
-    age_at_diagnosis_of_ovarian_cancer:
-      title: Age At Diagnosis Of Ovarian Cancer
-      type: integer
-      minimum: 0
-      maximum: 99
-    ClinicalSummaryLetter:
-      type: object
-      description: '"Clinical summary letter provided by physician of record. Only relevant if physician of record services were requested."
-
-        '
-      properties:
-        completed_on:
-          allOf:
-          - $ref: '#/components/schemas/YMDDate'
-        description:
-          type:
-          - string
-          - 'null'
-        mimetype:
-          type:
-          - string
-          - 'null'
-        uri:
-          type:
-          - string
-          - 'null'
-    YMDDate:
-      type: string
-      pattern: '[12]\d{3}-[01]\d-[0123]\d'
-      example: '1999-12-31'
-    PGxImpactToplineFinding:
-      type: string
-      enum:
-      - MINIMAL_IMPACT
-      - ALTERED_DOSE
-      - MAJOR_IMPACT
-      - CONTRAINDICATED
-    age_at_breast_cancer_bilateral:
-      title: Age At Which They Developed Bilateral Breast Cancer?
-      description: If unknown, then their current age or the age at which they died.
-      type: integer
-      minimum: 0
-    TotalCholesterol:
-      title: Total Cholesterol Level (mg/dL)
-      description: must be between 130 - 320
-      type: number
-      minimum: 130
-      maximum: 320
-    glucose:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Glucose
-      type: object
-      required:
-      - fasting_glucose_level
-      properties:
-        fasting_glucose_level:
-          $ref: '#/components/schemas/FastingGlucoseLevel'
-      additionalProperties: false
-      definitions:
-        FastingGlucoseLevel:
-          title: Fasting Glucose Level (mg/dL)
-          description: must be between 50 - 250gs; levels >250 (diabetic) not eligible
-          type: number
-          minimum: 50
-          maximum: 250
-          example: 85.5
-    ashkenazi_jewish:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Ashkenazi Jewish Heritage
-      description: Does the patient have an Ashkenazi Jewish Heritage?
-      type: string
-      $ref: '#/components/schemas/YesNoUnknown'
-    ProductDataPR42014:
-      $ref: '#/components/schemas/ProductDataPR41016'
-    ProductDataPR41027:
-      type: object
-      title: Inputs for IPRS T2D
-      additionalProperties: false
-      required:
-      - smoking
-      - glucose
-      - triglyceride
-      - cholesterol
-      - blood_pressure
-      - diabetes_family_history
-      - body_mass_index
-      - waist_circumference
-      properties:
-        diabetes:
-          $ref: '#/components/schemas/diabetes'
-        smoking:
-          $ref: '#/components/schemas/smoking'
-        cholesterol:
-          $ref: '#/components/schemas/cholesterol'
-        glucose:
-          $ref: '#/components/schemas/glucose'
-        triglyceride:
-          $ref: '#/components/schemas/triglyceride'
-        blood_pressure:
-          $ref: '#/components/schemas/blood_pressure'
-        diabetes_family_history:
-          $ref: '#/components/schemas/diabetes_family_history'
-        body_mass_index:
-          $ref: '#/components/schemas/body_mass_index'
-        waist_circumference:
-          $ref: '#/components/schemas/waist_circumference'
-    length_of_time_since_last_taking_hormone_replacement_therapy:
-      title: Length Of Time Since Last Taking Hormone Replacement Therapy (HRT)
-      description: Round to the nearest decimal point (e.g. 4.5 years)
-      type: number
-      minimum: 0
-    blood_pressure:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Blood Pressure
-      type: object
-      required:
-      - systolic_blood_pressure
-      - diastolic_blood_pressure
-      - antihypertension_medication_use
-      properties:
-        systolic_blood_pressure:
-          $ref: '#/components/schemas/SystolicBloodPressure'
-        diastolic_blood_pressure:
-          $ref: '#/components/schemas/DiastolicBloodPressure'
-        antihypertension_medication_use:
-          $ref: '#/components/schemas/AntiHyperTensionMedicationUse'
-      additionalProperties: false
-      definitions:
-        SystolicBloodPressure:
-          title: Systolic Blood Pressure (mm HG)
-          description: must be between 90 - 200
-          type: number
-          minimum: 90
-          maximum: 200
-        DiastolicBloodPressure:
-          title: Diastolic Blood Pressure (mm HG)
-          description: must be between 60 - 130
-          type: number
-          minimum: 60
-          maximum: 130
-        AntiHyperTensionMedicationUse:
-          title: Is The Patient Undergoing Treatment For Hypertension?
-          type: boolean
-    ReportType:
-      type: string
-      enum:
-      - BASELINE_RISK
-      - MONOGENIC
-      - NDD_CNA
-      - RARE_DISEASE
-      - PGX
-      - PRS
-      - FAMILY_VARIANT_TESTING
-      - DATA_ONLY
-      - CLINICAL_RISK_ONLY
-      - CANCELED
-    EmailAddress:
-      type: string
-      title: Email Address
-      format: email
-    ProductDataPR41016:
-      type: object
-      title: Inputs for IPRS CAD
-      additionalProperties: false
-      required:
-      - smoking
-      - diabetes
-      - cholesterol
-      - blood_pressure
-      properties:
-        diagnosed_with_coronary_artery_disease:
-          $ref: '#/components/schemas/diagnosed_with_coronary_artery_disease'
-        smoking:
-          $ref: '#/components/schemas/smoking'
-        diabetes:
-          $ref: '#/components/schemas/diabetes'
-        cholesterol:
-          $ref: '#/components/schemas/cholesterol'
-        blood_pressure:
-          $ref: '#/components/schemas/blood_pressure'
     RequisitionListResultItem:
       type: object
       additionalProperties: false
@@ -990,59 +228,489 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/RequisitionOrderDetails'
-    hormone_replacement_therapy_use:
-      title: Hormone Replacement Therapy (HRT) Use
+    SampleType:
       type: string
-      anyOf:
-      - title: Never
-        type: string
-        enum:
-        - NEVER
-      - title: Previous user (more than 5 years ago)
-        type: string
-        enum:
-        - GT_5_YEARS_AGO
-      - title: Previous user (less than 5 years ago)
-        type: string
-        enum:
-        - LT_5_YEARS_AGO
-      - title: Current user (or stopped using less than 12 months ago)
-        type: string
+      title: Sample Type
+      enum:
+      - SALIVA
+      - BLOOD
+      - BUCCAL_SWAB
+      - DNA
+      - DATA
+      - WATER
+      - POSITIVE_CONTROL
+    ClinicianReviewStatus:
+      type: string
+      enum:
+      - PENDING
+      - IN_REVIEW
+      - COMPLETED
+      - INELIGIBLE
+    ProductDataPR41027:
+      type: object
+      title: Inputs for IPRS T2D
+      additionalProperties: false
+      required:
+      - smoking
+      - glucose
+      - triglyceride
+      - cholesterol
+      - blood_pressure
+      - diabetes_family_history
+      - body_mass_index
+      - waist_circumference
+      properties:
+        diabetes:
+          $ref: '#/components/schemas/diabetes'
+        smoking:
+          $ref: '#/components/schemas/smoking'
+        cholesterol:
+          $ref: '#/components/schemas/cholesterol'
+        glucose:
+          $ref: '#/components/schemas/glucose'
+        triglyceride:
+          $ref: '#/components/schemas/triglyceride'
+        blood_pressure:
+          $ref: '#/components/schemas/blood_pressure'
+        diabetes_family_history:
+          $ref: '#/components/schemas/diabetes_family_history'
+        body_mass_index:
+          $ref: '#/components/schemas/body_mass_index'
+        waist_circumference:
+          $ref: '#/components/schemas/waist_circumference'
+    Name:
+      type: object
+      title: Name
+      additionalProperties: false
+      properties:
+        first:
+          type: string
+          title: First
+        middle:
+          type:
+          - string
+          - 'null'
+          title: Middle
+        last:
+          type: string
+          title: Last
+        credentials:
+          type:
+          - string
+          - 'null'
+          title: Credentials
+          description: e.g. M.D., Ph.D.
+      examples:
+      - first: Zaphod
+        middle: Vogon
+        last: Beeblebrox
+        credentials: M.D., Ph.D.
+    DiastolicBloodPressure:
+      title: Diastolic Blood Pressure (mm HG)
+      description: must be between 60 - 130
+      type: number
+      minimum: 60
+      maximum: 130
+    diagnosed_with_coronary_artery_disease:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Has the Patient Been Diagnosed With Coronary Artery Disease?
+      type: boolean
+    ProviderLicenseStatus:
+      type: string
+      enum:
+      - UNVERIFIED
+      - VERIFIED
+      - REVOKED
+      - DENIED
+    ContactInfo:
+      type: object
+      additionalProperties: false
+      properties:
+        address:
+          title: Address
+          $ref: '#/components/schemas/Address'
+        email:
+          $ref: '#/components/schemas/EmailAddress'
+        phone:
+          type: string
+          title: Phone Number
+        fax:
+          type:
+          - string
+          - 'null'
+          title: Fax Number
+    length_of_time_since_last_taking_hormone_replacement_therapy:
+      title: Length Of Time Since Last Taking Hormone Replacement Therapy (HRT)
+      description: Round to the nearest decimal point (e.g. 4.5 years)
+      type: number
+      minimum: 0
+    polygenic_snp_score:
+      title: Polygenic SNP Score
+      description: Log relative risk, decimal
+      type: number
+    TotalCholesterol:
+      title: Total Cholesterol Level (mg/dL)
+      description: must be between 130 - 320
+      type: number
+      minimum: 130
+      maximum: 320
+    length_of_time_taking_hormone_replacement_therapy:
+      title: Length Of Time Taking Hormone Replacement Therapy (HRT)
+      description: Round to the nearest decimal point (e.g. 4.5 years)
+      type: number
+      minimum: 0
+    had_ovarian_cancer:
+      title: Did They Have Ovarian Cancer?
+      $ref: '#/components/schemas/YesNoUnknown'
+    SmokingStatus:
+      title: Current Smoking Status
+      type: string
+      oneOf:
+      - type: string
+        title: Current Smoker
         enum:
         - CURRENT
-    TyrerCuzickFamilyHistory:
+      - type: string
+        title: Former Smoker
+        enum:
+        - FORMER
+      - type: string
+        title: Non-Smoker
+        enum:
+        - NEVER
+    breast_density_value_decimal:
+      title: Breast Density Value (0.00 to 100.00)
+      description: Value for Volpara® and VAS
+      type: number
+      minimum: 0.0
+      maximum: 100.0
+    height:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Height (m)
+      description: Enter to two decimal points (e.g. 1.65)
+      type: number
+      minimum: 0
+      maximum: 5
+      example: 1.65
+    BillingInsurance:
+      title: Insurance Billing (Commercial, Medicaid, Medicare)
+      additionalProperties: false
       type: object
       properties:
-        name:
-          $ref: '#/components/schemas/name'
-        had_breast_cancer:
-          $ref: '#/components/schemas/had_breast_cancer'
-        breast_cancer_bilateral:
-          $ref: '#/components/schemas/breast_cancer_bilateral'
-        age_at_breast_cancer:
-          $ref: '#/components/schemas/age_at_breast_cancer'
-        age_at_breast_cancer_bilateral:
-          $ref: '#/components/schemas/age_at_breast_cancer_bilateral'
-        had_ovarian_cancer:
-          $ref: '#/components/schemas/had_ovarian_cancer'
-        age_at_ovarian_cancer:
-          $ref: '#/components/schemas/age_at_ovarian_cancer'
-        genetic_testing:
-          $ref: '#/components/schemas/BreastCancerGeneticTesting'
-    PhoneNumber:
-      type: string
-      pattern: ^\+?\d{1,4}?[-\s]?\(?\d{1,3}?\)?[-\s]?\d{1,4}[-\s]?\d{1,9}?$
+        billing_type:
+          type: string
+          title: Billing Type
+          default: INSURANCE
+          enum:
+          - INSURANCE
+        insurance:
+          type: array
+          minItems: 1
+          maxItems: 2
+          items:
+            $ref: '#/components/schemas/Insurance'
+      required:
+      - billing_type
+      - insurance
+    ProductDataPR42038:
+      $ref: '#/components/schemas/ProductDataPR41034'
+    File:
+      type: object
+      required:
+      - uri
+      - mimetype
+      properties:
+        uri:
+          type: string
+        mimetype:
+          type: string
+        description:
+          type: string
+        sha512:
+          type: string
+          pattern: ^[0-9a-fA-F]{128}$
+        crc64nvme:
+          type: string
+          pattern: ^[A-Za-z0-9+/_-]{11}=$
+        sha256:
+          type: string
+          pattern: ^[0-9a-fA-F]{64}$
       examples:
-      - '+919367788755'
-      - '8989829304'
-      - '+16308520397'
-      - 786-307-3615
-      - +1-555-555-5555
+      - uri: s3://somebucket/path/to/report.json
+        description: Report in JSON format
+        mimetype: application/json
+        sha512: 1b3c34b32bba4ece72a7b9a1ee53359fe7238be5986984463b5da41baf3b53bce66c87d7f5557021c553a1bbeac175eac2b4923329b993fba11a93502c256912
+      - uri: s3://somebucket/path/to/report.pdf
+        description: Report in PDF format
+        mimetype: application/pdf
+        sha512: cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e
+      - uri: s3://somebucket/path/to/SM123.R1.fastq.gz
+        description: R1 FastQ file
+        mimetype: application/x.seq-na-fastq;type=paired_end;direction=R1
+        sha512: 3ef109fe55e194a0f37b5936405dcf2b96ce7eeb8891d59650c708d26f256d018fd8f98c6efb7da8f85029a3708e34f86a54e700ba3b36fb0967aa869ed37915
+    FVTRequisitionDetails:
+      type: object
+      additionalProperties: false
+      properties:
+        source_requisition:
+          type:
+          - string
+          - 'null'
+          description: 'The identifier of the source requisition for FVT orders.
+
+            '
+        source_relationship:
+          type:
+          - string
+          - 'null'
+          description: 'The relationship of the source requisition to the current requisition.
+
+            '
+        variants:
+          type:
+          - array
+          - 'null'
+          items:
+            type: object
+            properties:
+              enum:
+                type:
+                - string
+                - 'null'
+                description: 'The enum value of the variant.
+
+                  '
+              title:
+                type:
+                - string
+                - 'null'
+                description: 'The display value of the variant.
+
+                  '
+    body_mass_index:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Body Mass Index
+      type: object
+      required:
+      - body_mass_index
+      properties:
+        body_mass_index:
+          $ref: '#/components/schemas/BodyMassIndex'
+      additionalProperties: false
+      definitions:
+        BodyMassIndex:
+          title: Body Mass Index (kg/m^2)
+          description: must be between 15 - 50
+          type: number
+          minimum: 15
+          maximum: 50
+          example: 22.5
+    age_at_breast_cancer_bilateral:
+      title: Age At Which They Developed Bilateral Breast Cancer?
+      description: If unknown, then their current age or the age at which they died.
+      type: integer
+      minimum: 0
+    Relationship:
+      description: Relationship to an individual (e.g., insurance policyholder)
+      type: string
+      enum:
+      - SELF
+      - SPOUSE
+      - CHILD
+      - DEPENDENT_HANDICAPPED
+      - DEPENDENT_SPONSORED
+      - DEPENDENT_OF_MINOR_DEPENDENT
+      - EMPLOYEE
+      - FOSTER_CHILD
+      - GRANDCHILD
+      - GRANDPARENT
+      - NEPHEW_OR_NIECE
+      - STEPCHILD
+      - UNKNOWN
+      - WARD_OF_COURT
+      - OTHER
+    ToplineFinding:
+      properties:
+        finding:
+          title: Finding
+          anyOf:
+          - $ref: '#/components/schemas/MonogenicToplineFinding'
+          - $ref: '#/components/schemas/PRSToplineFinding'
+          - $ref: '#/components/schemas/PGxImpactToplineFinding'
+          - $ref: '#/components/schemas/RareDiseaseToplineFinding'
+          type: string
+        text:
+          title: Text
+          type: string
+      required:
+      - finding
+      - text
+    Address:
+      type: object
+      additionalProperties: false
+      properties:
+        street_address:
+          type: string
+          title: Street Address
+          description: Number and street
+        street_address_2:
+          type:
+          - string
+          - 'null'
+          title: Street Address Line 2
+        city:
+          type: string
+          title: City
+        region:
+          type: string
+          title: Region
+          description: State, province, or other country-specific region
+        postal_code:
+          type: string
+          title: Postal Code
+          description: Country-specific code for geographic districts
+        country:
+          type:
+          - string
+          - 'null'
+          title: Country
+          description: Country name or abbreviation
+      required:
+      - street_address
+      - city
+      - region
+      - postal_code
+      examples:
+      - street_address: 930 Brittan Ave
+        city: San Carlos
+        region: CA
+        postal_code: '94070'
+        country: US
+    TriglycerideLevel:
+      title: Triglyceride Level (mg/dL)
+      description: must be between 40 - 500
+      type: number
+      minimum: 40
+      maximum: 500
+      example: 150.5
+    brother_had_breast_cancer:
+      title: Has A Brother Had Breast Cancer?
+      $ref: '#/components/schemas/YesNoUnknown'
+    PRSToplineFinding:
+      type: string
+      enum:
+      - AVERAGE_RISK
+      - ELEVATED_RISK
+      - HIGH_RISK
+      - LOW_RISK
+      - INTERMEDIATE_RISK
+      - BORDERLINE_RISK
+      - NOT_ANALYZED
+      - INCREASED_RISK
+      - NOT_INCREASED_RISK
+    age_at_menopause:
+      title: Age At Menopause
+      description: Leave blank if unknown.
+      type: integer
+      minimum: 0
+      maximum: 99
+    FirstOrSecondDegreeFamilyWithProstateCancer:
+      title: Has a First or Second Degree Family Member Been Diagnosed with Prostate Cancer?
+      type: string
+      $ref: '#/components/schemas/YesNoUnknown'
+    age_at_menarche:
+      title: Age At Menarche
+      description: Age at first menstrual period. Leave blank if unknown.
+      type: integer
+      minimum: 0
+      maximum: 99
+    BillingSelf:
+      title: Patient Pay
+      additionalProperties: false
+      type: object
+      properties:
+        billing_type:
+          type: string
+          title: Billing Type
+          default: SELF
+          enum:
+          - SELF
+        stripe_paymentintent_id:
+          type: string
+        promo_code:
+          type: string
+      required:
+      - billing_type
+    blood_pressure:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Blood Pressure
+      type: object
+      required:
+      - systolic_blood_pressure
+      - diastolic_blood_pressure
+      - antihypertension_medication_use
+      properties:
+        systolic_blood_pressure:
+          $ref: '#/components/schemas/SystolicBloodPressure'
+        diastolic_blood_pressure:
+          $ref: '#/components/schemas/DiastolicBloodPressure'
+        antihypertension_medication_use:
+          $ref: '#/components/schemas/AntiHyperTensionMedicationUse'
+      additionalProperties: false
+      definitions:
+        SystolicBloodPressure:
+          title: Systolic Blood Pressure (mm HG)
+          description: must be between 90 - 200
+          type: number
+          minimum: 90
+          maximum: 200
+        DiastolicBloodPressure:
+          title: Diastolic Blood Pressure (mm HG)
+          description: must be between 60 - 130
+          type: number
+          minimum: 60
+          maximum: 130
+        AntiHyperTensionMedicationUse:
+          title: Is The Patient Undergoing Treatment For Hypertension?
+          type: boolean
+    ProductDataPR42009:
+      $ref: '#/components/schemas/ProductDataPR41003'
     MonogenicToplineFinding:
       type: string
       enum:
       - POSITIVE
       - NEGATIVE
+    ProductDataRareDisease:
+      type: object
+      additionalProperties: false
+      title: Inputs for Rare Disease
+      required:
+      - ndd_icd10_codes
+      - secondary_findings_opt_out
+      properties:
+        secondary_findings_opt_out:
+          title: Secondary Findings Opt Out
+          description: true for opt-out, false for opt-in
+          type: boolean
+        ndd_icd10_codes:
+          type: array
+          items:
+            type: string
+          title: ICD10 Codes
+          description: 'For Example: Q75.3 Macrocephaly'
+        clinical_phenotypes__other:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          title: Clinical Phenotypes
+    father_had_breast_cancer:
+      title: Has The Father Had Breast Cancer?
+      $ref: '#/components/schemas/YesNoUnknown'
+    history_of_atypical_hyperplasia:
+      title: History Of Atypical Hyperplasia
+      $ref: '#/components/schemas/YesNoUnknown'
     Insurance:
       title: Insurance information
       type: object
@@ -1111,13 +779,9 @@ components:
                 - My patient may be referred for additional medical consultations and/or support services for additional treatments and surveillance
                 - My patient's medication may change if genetic findings indicate risk for adverse reactions or poor drug metabolism
               uniqueItems: true
-    type_of_hormone_replacement_therapy_taken:
-      title: Type Of Hormone Replacement Therapy (HRT) Taken
-      type: string
-      enum:
-      - OESTROGEN
-      - COMBINED
-      - UNKNOWN
+    history_of_hyperplasia:
+      title: History Of Hyperplasia
+      $ref: '#/components/schemas/YesNoUnknown'
     diabetes_family_history:
       $schema: https://json-schema.org/draft/2020-12/schema
       title: DiabetesFamilyHistory
@@ -1132,148 +796,130 @@ components:
         FirstDegreeFamilyWithType2Diabetes:
           title: Has a First Degree Family Member Been Diagnosed with Type 2 Diabetes?
           type: boolean
-    PhysicianOfRecord:
-      description: true if the order requires physcian of record services
-      type: boolean
-      enum:
-      - true
-    PRSToplineFinding:
-      type: string
-      enum:
-      - AVERAGE_RISK
-      - ELEVATED_RISK
-      - HIGH_RISK
-      - LOW_RISK
-      - INTERMEDIATE_RISK
-      - BORDERLINE_RISK
-      - NOT_ANALYZED
-      - INCREASED_RISK
-      - NOT_INCREASED_RISK
-    SampleType:
-      type: string
-      title: Sample Type
-      enum:
-      - SALIVA
-      - BLOOD
-      - BUCCAL_SWAB
-      - DNA
-      - DATA
-      - WATER
-      - POSITIVE_CONTROL
-    diabetes:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Diabetes
+    RequisitionOrderDetails:
       type: object
-      required:
-      - diagnosed_with_type_2_diabetes
       properties:
-        diagnosed_with_type_2_diabetes:
-          $ref: '#/components/schemas/DiagnosedWithType2Diabetes'
-      additionalProperties: false
-      definitions:
-        DiagnosedWithType2Diabetes:
-          title: Has the Patient Been Diagnosed With Type 2 Diabetes?
-          type: boolean
-    ToplineFinding:
-      properties:
-        finding:
-          title: Finding
-          anyOf:
-          - $ref: '#/components/schemas/MonogenicToplineFinding'
-          - $ref: '#/components/schemas/PRSToplineFinding'
-          - $ref: '#/components/schemas/PGxImpactToplineFinding'
-          - $ref: '#/components/schemas/RareDiseaseToplineFinding'
-          type: string
-        text:
-          title: Text
-          type: string
+        order_id:
+          allOf:
+          - $ref: '#/components/schemas/OrderId'
+        product_id:
+          allOf:
+          - $ref: '#/components/schemas/ProductId'
+        product_name:
+          type:
+          - string
+          - 'null'
+        report_type:
+          allOf:
+          - $ref: '#/components/schemas/ReportType'
+        created_at:
+          allOf:
+          - $ref: '#/components/schemas/YMDDate'
+        reported_at:
+          allOf:
+          - $ref: '#/components/schemas/YMDDate'
+        status:
+          allOf:
+          - $ref: '#/components/schemas/ExternalOrderStatus'
+        results:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/ToplineFinding'
+    age_at_diagnosis_of_ovarian_cancer:
+      title: Age At Diagnosis Of Ovarian Cancer
+      type: integer
+      minimum: 0
+      maximum: 99
+    ProductDataPR4001Empower:
+      type: object
+      description: Additional data needed for product ID PR4001 with TC outputs and a data sample
       required:
-      - finding
-      - text
-    had_breast_cancer:
-      title: Did They Have Breast Cancer?
-      $ref: '#/components/schemas/YesNoUnknown'
-    ClinicId:
-      type: string
-      pattern: ^CL-?([a-z]{3,5}-?)?\d+$
-      examples:
-      - CL-0123456
-      - CL-dev-123456
-      - CL0123456
-      - CLdev123456
-    UTCTimestamp:
-      description: UTC timestamp in ISO-8601 format. e.g., `2018-11-13T20:20:39+00:00`
-      type: string
-      format: date-time
-      pattern: ^[12]\d{3}-[01]\d-[0123]\dT\d{2}:\d{2}:\d{2}\.?\d*[+-Z](\d{2}:\d{2})?$
-      examples:
-      - '2018-11-13T20:20:39+00:00'
-      - '2018-11-13T20:20:39.0123Z'
-    Date:
-      type: string
-      format: date
-    AntiHyperTensionMedicationUse:
-      title: Is The Patient Undergoing Treatment For Hypertension?
-      type: boolean
-    Subject:
+      - tc_data
+      - data_files
+      - data_sample_info
+      properties:
+        tc_data:
+          type: object
+          description: Extra data required for computation. The content requirements depend on the selected product ID.
+          additionalProperties: false
+          required:
+          - five_year_risk
+          - lifetime_risk
+          - n_first_degree_affected
+          properties:
+            five_year_risk:
+              description: Five year risk score in decimal format.
+              type: number
+              minimum: 0
+              maximum: 1
+            lifetime_risk:
+              description: Lifetime year risk score in decimal format.
+              type: number
+              minimum: 0
+              maximum: 1
+            n_first_degree_affected:
+              description: Number of first degree
+              type: integer
+        data_files:
+          type: array
+          items:
+            type: object
+            $ref: '#/components/schemas/File'
+        data_sample_info:
+          type: object
+          additionalProperties: false
+          required:
+          - collection_date
+          - received_date
+          - sample_type
+          properties:
+            sample_type:
+              type: string
+              enum:
+              - DATA
+            collection_date:
+              type: string
+              pattern: '[12]\d{3}-[01]\d-[0123]\d'
+            received_date:
+              type: string
+              pattern: '[12]\d{3}-[01]\d-[0123]\d'
+      example:
+        tc_data:
+          five_year_risk: 0.012
+          lifetime_risk: 0.022
+          n_first_degree_affected: 2
+        data_files:
+        - uri: s3://bucket/R1.fastq
+          sha512: 3b7fc7cc370707c1df045c35342f3d64ea7076
+          description: R1 Fastq sequence
+          mimetype: application/x.seq-na-fastq;type=paired_end;direction=R1
+        - uri: s3://bucket/R2.fastq
+          sha512: 3b7fc7cc370707c1df045c35342f3d64ea7076
+          description: R2 Fastq sequence
+          mimetype: application/x.seq-na-fastq;type=paired_end;direction=R2
+        data_sample_info:
+          sample_type: DATA
+          collection_date: '2022-12-21'
+          received_date: '2022-12-23'
+    SubjectOptionalAddress:
       $schema: https://json-schema.org/draft/2020-12/schema
-      title: Subject
+      title: SubjectOptionalAddress
       type: object
       properties:
         name:
-          $ref: '#/components/schemas/Name'
+          oneOf:
+          - $ref: '#/components/schemas/Name'
+          - type: 'null'
         contact_info:
           type: array
           items:
-            $ref: '#/components/schemas/ContactInfo'
+            $ref: '#/components/schemas/ContactInfoOptional'
         demographics:
-          $ref: '#/components/schemas/Demographics'
-    MenopausalStatus:
-      title: Menopausal Status
-      type: string
-      default: UNKNOWN
-      enum:
-      - PREMENOPAUSAL
-      - PERIMENOPAUSAL
-      - POSTMENOPAUSAL
-      - UNKNOWN
-    DNAVisitServiceType:
-      description: Pre- and post-test service types offered by DNAVisit
-      type: string
-      enum:
-      - PRE_TEST_REVIEW_ONLY
-      - PRE_TEST_COUNSELING
-      - POST_TEST_REVIEW_ONLY
-      - POST_TEST_COUNSELING
-    breast_density_value_decimal:
-      title: Breast Density Value (0.00 to 100.00)
-      description: Value for Volpara® and VAS
-      type: number
-      minimum: 0.0
-      maximum: 100.0
-    SmokingStatus:
-      title: Current Smoking Status
-      type: string
-      oneOf:
-      - type: string
-        title: Current Smoker
-        enum:
-        - CURRENT
-      - type: string
-        title: Former Smoker
-        enum:
-        - FORMER
-      - type: string
-        title: Non-Smoker
-        enum:
-        - NEVER
-    ProductDataPR42038:
-      $ref: '#/components/schemas/ProductDataPR41034'
-    DiagnosedWithType2Diabetes:
-      title: Has the Patient Been Diagnosed With Type 2 Diabetes?
-      type: boolean
-    ProductDataPR42023:
-      $ref: '#/components/schemas/ProductDataPR41027'
+          oneOf:
+          - $ref: '#/components/schemas/Demographics'
+          - type: 'null'
     ProductId:
       type: string
       description: A reference to an ordered product.
@@ -1281,6 +927,25 @@ components:
       examples:
       - PR-0123456
       - PR0123456
+    Gender:
+      description: "Cultural/social gender; unconstrained string\nSources:\n  * https://www.csusm.edu/ipa/surveys/inclusive-language-guidelines.html"
+      type: string
+      enum:
+      - CISGENDER_MAN
+      - CISGENDER_WOMAN
+      - NO_RESPONSE
+      - NON_BINARY
+      - TRANSGENDER_MAN
+      - TRANSGENDER_WOMAN
+    RerequisitionType:
+      type: string
+      enum:
+      - NEW_ORDER
+      - REANALYSIS
+    diagnosed_with_breast_cancer:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Has the Patient Been Diagnosed With Breast Cancer?
+      type: boolean
     ProductDataPR41003:
       type: object
       title: Inputs for IPRS Breast Cancer
@@ -1297,79 +962,111 @@ components:
           $ref: '#/components/schemas/ashkenazi_jewish'
         tyrer_cuzick_inputs:
           $ref: '#/components/schemas/tyrer_cuzick_inputs'
-    name:
-      title: Name
-      type: string
-    YesNoUnknown:
-      type: string
-      default: UNKNOWN
-      enum:
-      - 'YES'
-      - 'NO'
-      - UNKNOWN
-    triglyceride:
+    history_of_ovarian_cancer:
+      title: History Of Ovarian Cancer
+      $ref: '#/components/schemas/YesNoUnknown'
+    diabetes:
       $schema: https://json-schema.org/draft/2020-12/schema
-      title: Triglyceride
+      title: Diabetes
       type: object
       required:
-      - triglyceride_level
+      - diagnosed_with_type_2_diabetes
       properties:
-        triglyceride_level:
-          $ref: '#/components/schemas/TriglycerideLevel'
+        diagnosed_with_type_2_diabetes:
+          $ref: '#/components/schemas/DiagnosedWithType2Diabetes'
       additionalProperties: false
       definitions:
-        TriglycerideLevel:
-          title: Triglyceride Level (mg/dL)
-          description: must be between 40 - 500
-          type: number
-          minimum: 40
-          maximum: 500
-          example: 150.5
-    BillingInstitutional:
-      title: Institutional Billing
-      additionalProperties: false
-      type: object
-      properties:
-        billing_type:
-          type: string
-          title: Billing Type
-          default: INSTITUTIONAL
-          enum:
-          - INSTITUTIONAL
-        billing_code:
-          type: string
-          maxLength: 64
-          title: Billing Code
-          description: Institutional code for billing
-      required:
-      - billing_type
-    Campaign:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Campaign
-      type: object
-      required:
-      - campaign_code
-      - name
-      - is_active
-      properties:
-        name:
-          type: string
-          examples:
-          - Example Partnership
-        campaign_code:
-          type: string
-          examples:
-          - EXAMPLE
-        description:
-          type: string
-          examples:
-          - by Example Partner
-        is_active:
+        DiagnosedWithType2Diabetes:
+          title: Has the Patient Been Diagnosed With Type 2 Diabetes?
           type: boolean
+    FamilyHistory:
+      type: object
+      description: 'Family History Questionnaire Answers
+
+        Format: {QNR_FHX_<_ID_>: {question_text: "question?", response:<YES|NO|UNSURE>}}
+
+        '
+    smoking:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Smoking
+      type: object
+      required:
+      - smoking_status
+      properties:
+        smoking_status:
+          $ref: '#/components/schemas/SmokingStatus'
       additionalProperties: false
-    breast_cancer_bilateral:
-      title: Was Breast Cancer Bilateral?
-      $ref: '#/components/schemas/YesNoUnknown'
+      definitions:
+        SmokingStatus:
+          title: Current Smoking Status
+          type: string
+          oneOf:
+          - type: string
+            title: Current Smoker
+            enum:
+            - CURRENT
+          - type: string
+            title: Former Smoker
+            enum:
+            - FORMER
+          - type: string
+            title: Non-Smoker
+            enum:
+            - NEVER
+    UUID:
+      description: Python UUID
+      type: string
+      pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}
+      examples:
+      - 90cd1561-bcc4-46bc-9ba2-19bb2521a28e
+      - c2a78d62-969f-455e-8b8f-bd5f0efd9273
+    ProductDataPR42023:
+      $ref: '#/components/schemas/ProductDataPR41027'
+    YMDDate:
+      type: string
+      pattern: '[12]\d{3}-[01]\d-[0123]\d'
+      example: '1999-12-31'
+    UTCTimestamp:
+      description: UTC timestamp in ISO-8601 format. e.g., `2018-11-13T20:20:39+00:00`
+      type: string
+      format: date-time
+      pattern: ^[12]\d{3}-[01]\d-[0123]\dT\d{2}:\d{2}:\d{2}\.?\d*[+-Z](\d{2}:\d{2})?$
+      examples:
+      - '2018-11-13T20:20:39+00:00'
+      - '2018-11-13T20:20:39.0123Z'
+    breast_density_value_birads:
+      title: Breast Density Value
+      description: Value for BI-RADS
+      type: string
+      enum:
+      - ALMOST_ENTIRELY_FATTY
+      - SCATTERED_FIBROGLANDULAR DENSITY
+      - HETEROGENEOUSLY_DENSE
+      - EXTREMELY_DENSE
+    SystolicBloodPressure:
+      title: Systolic Blood Pressure (mm HG)
+      description: must be between 90 - 200
+      type: number
+      minimum: 90
+      maximum: 200
+    BiologicalSex:
+      description: Sex assigned at birth
+      type: string
+      enum:
+      - FEMALE
+      - MALE
+      - OTHER
+    ProductDataPR42014:
+      $ref: '#/components/schemas/ProductDataPR41016'
+    age_at_breast_cancer:
+      title: Age At Which They Developed Breast Cancer?
+      description: If unknown, then their current age or the age at which they died.
+      type: integer
+      minimum: 0
+    diagnosed_with_prostate_cancer:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Has the Patient Been Diagnosed With Prostate Cancer?
+      type: boolean
     tyrer_cuzick_inputs:
       $schema: https://json-schema.org/draft/2020-12/schema
       title: Tyrer-Cuzick Risk Score Inputs
@@ -1503,110 +1200,348 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TyrerCuzickFamilyHistory'
-    RequisitionId:
-      type: string
-      pattern: ^RQ-?([a-z]{3,5}-?)?\d+$
+    AddressOptional:
+      type: object
+      additionalProperties: false
+      properties:
+        street_address:
+          type:
+          - string
+          - 'null'
+          title: Street Address
+          description: Number and street
+        street_address_2:
+          type:
+          - string
+          - 'null'
+          title: Street Address Line 2
+        city:
+          type:
+          - string
+          - 'null'
+          title: City
+        region:
+          type:
+          - string
+          - 'null'
+          title: Region
+          description: State, province, or other country-specific region
+        postal_code:
+          type:
+          - string
+          - 'null'
+          title: Postal Code
+          description: Country-specific code for geographic districts
+        country:
+          type:
+          - string
+          - 'null'
+          title: Country
+          description: Country name or abbreviation
       examples:
-      - RQ-0123456
-      - RQ-dev-0123456
-      - RQ0123456
-      - RQdev0123456
-    BillingSelf:
-      title: Patient Pay
+      - street_address: 930 Brittan Ave
+        city: San Carlos
+        region: CA
+        postal_code: '94070'
+        country: US
+    hormone_replacement_therapy_use:
+      title: Hormone Replacement Therapy (HRT) Use
+      type: string
+      anyOf:
+      - title: Never
+        type: string
+        enum:
+        - NEVER
+      - title: Previous user (more than 5 years ago)
+        type: string
+        enum:
+        - GT_5_YEARS_AGO
+      - title: Previous user (less than 5 years ago)
+        type: string
+        enum:
+        - LT_5_YEARS_AGO
+      - title: Current user (or stopped using less than 12 months ago)
+        type: string
+        enum:
+        - CURRENT
+    TyrerCuzickFamilyHistory:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/name'
+        had_breast_cancer:
+          $ref: '#/components/schemas/had_breast_cancer'
+        breast_cancer_bilateral:
+          $ref: '#/components/schemas/breast_cancer_bilateral'
+        age_at_breast_cancer:
+          $ref: '#/components/schemas/age_at_breast_cancer'
+        age_at_breast_cancer_bilateral:
+          $ref: '#/components/schemas/age_at_breast_cancer_bilateral'
+        had_ovarian_cancer:
+          $ref: '#/components/schemas/had_ovarian_cancer'
+        age_at_ovarian_cancer:
+          $ref: '#/components/schemas/age_at_ovarian_cancer'
+        genetic_testing:
+          $ref: '#/components/schemas/BreastCancerGeneticTesting'
+    HDLCholesterol:
+      title: HDL Cholesterol Level (mg/dL)
+      description: must be between 20 - 100
+      type: number
+      minimum: 20
+      maximum: 100
+    breast_cancer_bilateral:
+      title: Was Breast Cancer Bilateral?
+      $ref: '#/components/schemas/YesNoUnknown'
+    length_of_future_time_intended_to_take_hormone_replacement_therapy:
+      title: Length Of Future Time Intended To Continue Taking Hormone Replacement Therapy (HRT)
+      description: Round to the nearest decimal point (e.g. 4.5 years)
+      type: number
+      minimum: 0
+    ContactInfoOptional:
+      type: object
+      additionalProperties: false
+      properties:
+        address:
+          title: Address
+          oneOf:
+          - $ref: '#/components/schemas/AddressOptional'
+          - type: 'null'
+        email:
+          anyOf:
+          - $ref: '#/components/schemas/EmailAddress'
+          - const: ''
+          - type: 'null'
+        phone:
+          type:
+          - string
+          - 'null'
+          title: Phone Number
+        fax:
+          type:
+          - string
+          - 'null'
+          title: Fax Number
+    number_of_live_births:
+      title: Number Of Live Births
+      description: Leave blank if unknown.
+      type: integer
+      minimum: 0
+      maximum: 50
+    BreastCancerGeneticTesting:
+      title: Breast Cancer Genetic Testing
+      type: string
+      anyOf:
+      - title: Never
+        type: string
+        enum:
+        - NEVER
+      - title: Test result negative
+        type: string
+        enum:
+        - NEGATIVE
+      - title: Positive in BRCA1
+        type: string
+        enum:
+        - BRCA1
+      - title: Positive in BRCA2
+        type: string
+        enum:
+        - BRCA2
+      - title: Unknown
+        type: string
+        enum:
+        - UNKNOWN
+    PhoneNumber:
+      type: string
+      pattern: ^\+?\d{1,4}?[-\s]?\(?\d{1,3}?\)?[-\s]?\d{1,4}[-\s]?\d{1,9}?$
+      examples:
+      - '+919367788755'
+      - '8989829304'
+      - '+16308520397'
+      - 786-307-3615
+      - +1-555-555-5555
+    EmailAddress:
+      type: string
+      title: Email Address
+      format: email
+    BodyMassIndex:
+      title: Body Mass Index (kg/m^2)
+      description: must be between 15 - 50
+      type: number
+      minimum: 15
+      maximum: 50
+      example: 22.5
+    history_of_lcis:
+      title: History Of LCIS
+      description: Lobular carcinoma in situ (LCIS)
+      $ref: '#/components/schemas/YesNoUnknown'
+    ExternalOrderStatus:
+      type: string
+      enum:
+      - SUBMITTED
+      - APPROVED
+      - DENIED
+      - AWAITING_SAMPLE
+      - ANALYZING
+      - REFERRAL_LAB_LD_REVIEW
+      - CLINICIAN_REVIEW
+      - COMPLETED
+      - CANCELED
+      - FAILED
+    menopausal_status:
+      $ref: '#/components/schemas/MenopausalStatus'
+    BiologicalRelationshipWithReverse:
+      description: Relationship to an individual including reverse relationships
+      type: string
+      enum:
+      - PARENT
+      - CHILD
+      - SIBLING
+    PhysicianOfRecord:
+      description: true if the order requires physcian of record services
+      type: boolean
+      enum:
+      - true
+    FirstDegreeFamilyWithType2Diabetes:
+      title: Has a First Degree Family Member Been Diagnosed with Type 2 Diabetes?
+      type: boolean
+    OrderId:
+      type: string
+      pattern: ^OR-?([a-z]{3,5}-?)?\d+$
+      examples:
+      - OR-0123456
+      - OR-dev-0123456
+      - OR0123456
+      - ORdev0123456
+    breast_density_measure:
+      title: Breast Density Measure
+      type: string
+      anyOf:
+      - title: Volpara® Volumetric Density (%)
+        type: string
+        enum:
+        - VOLPARA
+      - title: VAS Percentage Density
+        type: string
+        enum:
+        - VAS
+      - title: BI-RADS® ATLAS Density
+        type: string
+        enum:
+        - BIRADS
+      - title: Not Available
+        type: string
+        enum:
+        - NOT_AVAILABLE
+    had_breast_cancer:
+      title: Did They Have Breast Cancer?
+      $ref: '#/components/schemas/YesNoUnknown'
+    name:
+      title: Name
+      type: string
+    cholesterol:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Cholesterol
+      type: object
+      required:
+      - total_cholesterol
+      - hdl_cholesterol
+      properties:
+        total_cholesterol:
+          $ref: '#/components/schemas/TotalCholesterol'
+        hdl_cholesterol:
+          $ref: '#/components/schemas/HDLCholesterol'
+      additionalProperties: false
+      definitions:
+        TotalCholesterol:
+          title: Total Cholesterol Level (mg/dL)
+          description: must be between 130 - 320
+          type: number
+          minimum: 130
+          maximum: 320
+        HDLCholesterol:
+          title: HDL Cholesterol Level (mg/dL)
+          description: must be between 20 - 100
+          type: number
+          minimum: 20
+          maximum: 100
+    prostate_cancer_family_history:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: ProstateCancerFamilyHistory
+      type: object
+      required:
+      - first_or_second_degree_family_with_prostate_cancer
+      properties:
+        first_or_second_degree_family_with_prostate_cancer:
+          $ref: '#/components/schemas/FirstOrSecondDegreeFamilyWithProstateCancer'
+      additionalProperties: false
+      definitions:
+        FirstOrSecondDegreeFamilyWithProstateCancer:
+          title: Has a First or Second Degree Family Member Been Diagnosed with Prostate Cancer?
+          type: string
+          $ref: '#/components/schemas/YesNoUnknown'
+    BillingInstitutional:
+      title: Institutional Billing
       additionalProperties: false
       type: object
       properties:
         billing_type:
           type: string
           title: Billing Type
-          default: SELF
+          default: INSTITUTIONAL
           enum:
-          - SELF
-        stripe_paymentintent_id:
+          - INSTITUTIONAL
+        billing_code:
           type: string
-        promo_code:
-          type: string
+          maxLength: 64
+          title: Billing Code
+          description: Institutional code for billing
       required:
       - billing_type
-    length_of_future_time_intended_to_take_hormone_replacement_therapy:
-      title: Length Of Future Time Intended To Continue Taking Hormone Replacement Therapy (HRT)
-      description: Round to the nearest decimal point (e.g. 4.5 years)
-      type: number
-      minimum: 0
-    waist_circumference:
+    Date:
+      type: string
+      format: date
+    glucose:
       $schema: https://json-schema.org/draft/2020-12/schema
-      title: Waist Circumference
+      title: Glucose
       type: object
       required:
-      - waist_circumference
+      - fasting_glucose_level
       properties:
-        waist_circumference:
-          $ref: '#/components/schemas/WaistCircumference'
+        fasting_glucose_level:
+          $ref: '#/components/schemas/FastingGlucoseLevel'
       additionalProperties: false
       definitions:
-        WaistCircumference:
-          title: Waist Circumference (cm)
-          description: must be between 50 - 200
+        FastingGlucoseLevel:
+          title: Fasting Glucose Level (mg/dL)
+          description: must be between 50 - 250gs; levels >250 (diabetic) not eligible
           type: number
           minimum: 50
-          maximum: 200
-          example: 90
-    SystolicBloodPressure:
-      title: Systolic Blood Pressure (mm HG)
-      description: must be between 90 - 200
-      type: number
-      minimum: 90
-      maximum: 200
-    FVTRequisitionDetails:
-      type: object
-      additionalProperties: false
-      properties:
-        source_requisition:
-          type:
-          - string
-          - 'null'
-          description: 'The identifier of the source requisition for FVT orders.
-
-            '
-        source_relationship:
-          type:
-          - string
-          - 'null'
-          description: 'The relationship of the source requisition to the current requisition.
-
-            '
-        variants:
-          type:
-          - array
-          - 'null'
-          items:
-            type: object
-            properties:
-              enum:
-                type:
-                - string
-                - 'null'
-                description: 'The enum value of the variant.
-
-                  '
-              title:
-                type:
-                - string
-                - 'null'
-                description: 'The display value of the variant.
-
-                  '
-    TriglycerideLevel:
-      title: Triglyceride Level (mg/dL)
-      description: must be between 40 - 500
-      type: number
-      minimum: 40
-      maximum: 500
-      example: 150.5
-    diagnosed_with_prostate_cancer:
+          maximum: 250
+          example: 85.5
+    age_at_ovarian_cancer:
+      title: Age At Which They Developed Ovarian Cancer?
+      description: If unknown, then their current age or the age at which they died.
+      type: integer
+      minimum: 0
+    triglyceride:
       $schema: https://json-schema.org/draft/2020-12/schema
-      title: Has the Patient Been Diagnosed With Prostate Cancer?
-      type: boolean
+      title: Triglyceride
+      type: object
+      required:
+      - triglyceride_level
+      properties:
+        triglyceride_level:
+          $ref: '#/components/schemas/TriglycerideLevel'
+      additionalProperties: false
+      definitions:
+        TriglycerideLevel:
+          title: Triglyceride Level (mg/dL)
+          description: must be between 40 - 500
+          type: number
+          minimum: 40
+          maximum: 500
+          example: 150.5
     NPI:
       type: string
       title: NPI
@@ -1614,83 +1549,121 @@ components:
       examples:
       - 012345678
       - 0123456789
-    age_at_menarche:
-      title: Age At Menarche
-      description: Age at first menstrual period. Leave blank if unknown.
-      type: integer
-      minimum: 0
-      maximum: 99
-    ProductDataPR4001Empower:
+    DnavisitServiceRequest:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: DnavisitServiceRequest
       type: object
-      description: Additional data needed for product ID PR4001 with TC outputs and a data sample
-      required:
-      - tc_data
-      - data_files
-      - data_sample_info
       properties:
-        tc_data:
-          type: object
-          description: Extra data required for computation. The content requirements depend on the selected product ID.
-          additionalProperties: false
-          required:
-          - five_year_risk
-          - lifetime_risk
-          - n_first_degree_affected
-          properties:
-            five_year_risk:
-              description: Five year risk score in decimal format.
-              type: number
-              minimum: 0
-              maximum: 1
-            lifetime_risk:
-              description: Lifetime year risk score in decimal format.
-              type: number
-              minimum: 0
-              maximum: 1
-            n_first_degree_affected:
-              description: Number of first degree
-              type: integer
-        data_files:
-          type: array
-          items:
-            type: object
-            $ref: '#/components/schemas/File'
-        data_sample_info:
-          type: object
-          additionalProperties: false
-          required:
-          - collection_date
-          - received_date
-          - sample_type
-          properties:
-            sample_type:
-              type: string
-              enum:
-              - DATA
-            collection_date:
-              type: string
-              pattern: '[12]\d{3}-[01]\d-[0123]\d'
-            received_date:
-              type: string
-              pattern: '[12]\d{3}-[01]\d-[0123]\d'
-      example:
-        tc_data:
-          five_year_risk: 0.012
-          lifetime_risk: 0.022
-          n_first_degree_affected: 2
-        data_files:
-        - uri: s3://bucket/R1.fastq
-          sha512: 3b7fc7cc370707c1df045c35342f3d64ea7076
-          description: R1 Fastq sequence
-          mimetype: application/x.seq-na-fastq;type=paired_end;direction=R1
-        - uri: s3://bucket/R2.fastq
-          sha512: 3b7fc7cc370707c1df045c35342f3d64ea7076
-          description: R2 Fastq sequence
-          mimetype: application/x.seq-na-fastq;type=paired_end;direction=R2
-        data_sample_info:
-          sample_type: DATA
-          collection_date: '2022-12-21'
-          received_date: '2022-12-23'
+        requisition_id:
+          $ref: '#/components/schemas/RequisitionId'
+        appointment_url:
+          type: string
+          format: uri
+          description: Link to a scheduled genetic counseling appointment
+        appointment_date:
+          $ref: '#/components/schemas/UTCTimestamp'
+        access_code:
+          type: string
+          description: Access code required to schedule new genetic counseling appointments
+        external_status:
+          type: string
+        service_type:
+          $ref: '#/components/schemas/DNAVisitServiceType'
+        requested_on:
+          $ref: '#/components/schemas/Date'
+        completed_on:
+          $ref: '#/components/schemas/Date'
+        dnavisit_order_id:
+          type: string
+      additionalProperties: false
+    ClinicId:
+      type: string
+      pattern: ^CL-?([a-z]{3,5}-?)?\d+$
+      examples:
+      - CL-0123456
+      - CL-dev-123456
+      - CL0123456
+      - CLdev123456
+    ClinicianId:
+      title: Clinician ID
+      type: string
+      pattern: ^CN-?([a-z]{3,5}-?)?\d+$
+      examples:
+      - CN-0123456
+      - CN-dev-0123456
+      - CN0123456
+      - CNdev0123456
+    ClinicalSummaryLetter:
+      type: object
+      description: '"Clinical summary letter provided by physician of record. Only relevant if physician of record services were requested."
+
+        '
+      properties:
+        completed_on:
+          allOf:
+          - $ref: '#/components/schemas/YMDDate'
+        description:
+          type:
+          - string
+          - 'null'
+        mimetype:
+          type:
+          - string
+          - 'null'
+        uri:
+          type:
+          - string
+          - 'null'
+    LabReferral:
+      description: true if the order is being placed by a referring lab
+      type: boolean
+      enum:
+      - true
+    PGxImpactToplineFinding:
+      type: string
+      enum:
+      - MINIMAL_IMPACT
+      - ALTERED_DOSE
+      - MAJOR_IMPACT
+      - CONTRAINDICATED
+    ConsentUri:
+      type: string
+      pattern: ^myome:consent:[A-Z_0-9]+(-\d+\.\d+\.\d+)?(-dev\.\d+)?$
+      examples:
+      - myome:consent:GENERAL-0.1.4
+      - myome:consent:PR2008-0.0.1
+      - myome:consent:DNAVISIT
+      - myome:consent:PRODUCT_NOTIFICATIONS-0.0.1
+      - myome:consent:PR5004-0.0.1-dev.0
+      - myome:consent:HIE_ACCESS__TREATMENT
+      - myome:consent:CONTACT__RESEARCH_OPPORTUNITIES
+      - myome:consent:CONTACT__TRANSACTIONAL_SMS
+      - myome:consent:CONTACT__MARKETING
+    ProductDataPR41034:
+      type: object
+      title: Inputs for IPRS PRC
+      additionalProperties: false
+      required:
+      - diagnosed_with_prostate_cancer
+      - prostate_cancer_family_history
+      properties:
+        diagnosed_with_prostate_cancer:
+          $ref: '#/components/schemas/diagnosed_with_prostate_cancer'
+        prostate_cancer_family_history:
+          $ref: '#/components/schemas/prostate_cancer_family_history'
+    CLIANumber:
+      type: string
+      pattern: ^\d{2}D[A-Za-z0-9]{7}$
+      examples:
+      - 12D3ad2R7q
+      - 34D31532S5
+    SortOrder:
+      description: Order in which results are sorted
+      type: string
+      enum:
+      - ascending
+      - descending
+      default: ascending
     IndividualId:
       type: string
       pattern: ^IN-?([a-z]{3,5}-?)?\d+$
@@ -1699,8 +1672,6 @@ components:
       - IN-123456
       - INdev123456
       - IN123456
-    menopausal_status:
-      $ref: '#/components/schemas/MenopausalStatus'
     Clinician:
       $schema: https://json-schema.org/draft/2020-12/schema
       title: Clinician
@@ -1754,66 +1725,41 @@ components:
           type: boolean
           description: Whether the clinician is active (not archived and in_use).
       additionalProperties: false
-    ProductDataPR42009:
-      $ref: '#/components/schemas/ProductDataPR41003'
-    BiologicalSex:
-      description: Sex assigned at birth
-      type: string
-      enum:
-      - FEMALE
-      - MALE
-      - OTHER
-    height:
-      $schema: https://json-schema.org/draft/2020-12/schema
-      title: Height (m)
-      description: Enter to two decimal points (e.g. 1.65)
-      type: number
+    DiagnosedWithType2Diabetes:
+      title: Has the Patient Been Diagnosed With Type 2 Diabetes?
+      type: boolean
+    genetic_testing_of_father:
+      title: Genetic Testing Of The Woman's Father
+      $ref: '#/components/schemas/BreastCancerGeneticTesting'
+    genetic_testing:
+      title: Genetic Testing Of The Woman
+      $ref: '#/components/schemas/BreastCancerGeneticTesting'
+    age_at_first_birth:
+      title: Age At First Birth
+      description: Leave blank if unknown.
+      type: integer
       minimum: 0
-      maximum: 5
-      example: 1.65
-    Relationship:
-      description: Relationship to an individual (e.g., insurance policyholder)
-      type: string
-      enum:
-      - SELF
-      - SPOUSE
-      - CHILD
-      - DEPENDENT_HANDICAPPED
-      - DEPENDENT_SPONSORED
-      - DEPENDENT_OF_MINOR_DEPENDENT
-      - EMPLOYEE
-      - FOSTER_CHILD
-      - GRANDCHILD
-      - GRANDPARENT
-      - NEPHEW_OR_NIECE
-      - STEPCHILD
-      - UNKNOWN
-      - WARD_OF_COURT
-      - OTHER
-    ContactInfoOptional:
+      maximum: 99
+    WaistCircumference:
+      title: Waist Circumference (cm)
+      description: must be between 50 - 200
+      type: number
+      minimum: 50
+      maximum: 200
+      example: 90
+    Demographics:
       type: object
-      additionalProperties: false
+      title: Demographics
       properties:
-        address:
-          title: Address
-          oneOf:
-          - $ref: '#/components/schemas/AddressOptional'
-          - type: 'null'
-        email:
-          anyOf:
-          - $ref: '#/components/schemas/EmailAddress'
-          - const: ''
-          - type: 'null'
-        phone:
-          type:
-          - string
-          - 'null'
-          title: Phone Number
-        fax:
-          type:
-          - string
-          - 'null'
-          title: Fax Number
+        dob:
+          title: Date of Birth
+          description: mm/dd/yyyy
+          $ref: '#/components/schemas/Date'
+        sex:
+          title: Sex
+          $ref: '#/components/schemas/BiologicalSex'
+        gender:
+          $ref: '#/components/schemas/Gender'
     Billing:
       title: Billing Information
       description: Options are currently self-pay, insurance, and institutional billing.
@@ -1824,76 +1770,158 @@ components:
         - $ref: '#/components/schemas/BillingSelf'
         - $ref: '#/components/schemas/BillingInsurance'
         - $ref: '#/components/schemas/BillingInstitutional'
-    prostate_cancer_family_history:
+    Institution:
       $schema: https://json-schema.org/draft/2020-12/schema
-      title: ProstateCancerFamilyHistory
+      title: Institution
       type: object
       required:
-      - first_or_second_degree_family_with_prostate_cancer
+      - name
       properties:
-        first_or_second_degree_family_with_prostate_cancer:
-          $ref: '#/components/schemas/FirstOrSecondDegreeFamilyWithProstateCancer'
+        name:
+          type: string
+          examples:
+          - External Lab
+        auth_sub:
+          $ref: '#/components/schemas/UUID'
+        contact_info:
+          type: array
+          items:
+            type: object
+            properties:
+              phone:
+                $ref: '#/components/schemas/PhoneNumber'
+          maxItems: 1
+        clia_numbers:
+          type: array
+          items:
+            $ref: '#/components/schemas/CLIANumber'
+      additionalProperties: false
+    waist_circumference:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Waist Circumference
+      type: object
+      required:
+      - waist_circumference
+      properties:
+        waist_circumference:
+          $ref: '#/components/schemas/WaistCircumference'
       additionalProperties: false
       definitions:
-        FirstOrSecondDegreeFamilyWithProstateCancer:
-          title: Has a First or Second Degree Family Member Been Diagnosed with Prostate Cancer?
-          type: string
-          $ref: '#/components/schemas/YesNoUnknown'
-    history_of_hyperplasia:
-      title: History Of Hyperplasia
-      $ref: '#/components/schemas/YesNoUnknown'
-    BodyMassIndex:
-      title: Body Mass Index (kg/m^2)
-      description: must be between 15 - 50
-      type: number
-      minimum: 15
-      maximum: 50
-      example: 22.5
-    FamilyHistory:
+        WaistCircumference:
+          title: Waist Circumference (cm)
+          description: must be between 50 - 200
+          type: number
+          minimum: 50
+          maximum: 200
+          example: 90
+    AntiHyperTensionMedicationUse:
+      title: Is The Patient Undergoing Treatment For Hypertension?
+      type: boolean
+    Campaign:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Campaign
       type: object
-      description: 'Family History Questionnaire Answers
-
-        Format: {QNR_FHX_<_ID_>: {question_text: "question?", response:<YES|NO|UNSURE>}}
-
-        '
-    brother_had_breast_cancer:
-      title: Has A Brother Had Breast Cancer?
-      $ref: '#/components/schemas/YesNoUnknown'
+      required:
+      - campaign_code
+      - name
+      - is_active
+      properties:
+        name:
+          type: string
+          examples:
+          - Example Partnership
+        campaign_code:
+          type: string
+          examples:
+          - EXAMPLE
+        description:
+          type: string
+          examples:
+          - by Example Partner
+        is_active:
+          type: boolean
+      additionalProperties: false
+    type_of_hormone_replacement_therapy_taken:
+      title: Type Of Hormone Replacement Therapy (HRT) Taken
+      type: string
+      enum:
+      - OESTROGEN
+      - COMBINED
+      - UNKNOWN
+    FastingGlucoseLevel:
+      title: Fasting Glucose Level (mg/dL)
+      description: must be between 50 - 250gs; levels >250 (diabetic) not eligible
+      type: number
+      minimum: 50
+      maximum: 250
+      example: 85.5
+    RareDiseaseToplineFinding:
+      type: string
+      enum:
+      - POSITIVE
+      - NEGATIVE
+      - UNCERTAIN
+    MenopausalStatus:
+      title: Menopausal Status
+      type: string
+      default: UNKNOWN
+      enum:
+      - PREMENOPAUSAL
+      - PERIMENOPAUSAL
+      - POSTMENOPAUSAL
+      - UNKNOWN
+    DNAVisitServiceType:
+      description: Pre- and post-test service types offered by DNAVisit
+      type: string
+      enum:
+      - PRE_TEST_REVIEW_ONLY
+      - PRE_TEST_COUNSELING
+      - POST_TEST_REVIEW_ONLY
+      - POST_TEST_COUNSELING
     OrganizationProviderRole:
       type: string
       enum:
       - ADMIN
       - DELEGATE
       - CLINICIAN
-    CLIANumber:
+    RequisitionToplineFinding:
       type: string
-      pattern: ^\d{2}D[A-Za-z0-9]{7}$
-      examples:
-      - 12D3ad2R7q
-      - 34D31532S5
-    BillingInsurance:
-      title: Insurance Billing (Commercial, Medicaid, Medicare)
-      additionalProperties: false
-      type: object
-      properties:
-        billing_type:
-          type: string
-          title: Billing Type
-          default: INSURANCE
-          enum:
-          - INSURANCE
-        insurance:
-          type: array
-          minItems: 1
-          maxItems: 2
-          items:
-            $ref: '#/components/schemas/Insurance'
-      required:
-      - billing_type
-      - insurance
-    FirstDegreeFamilyWithType2Diabetes:
-      title: Has a First Degree Family Member Been Diagnosed with Type 2 Diabetes?
-      type: boolean
+      enum:
+      - POSITIVE
+      - NEGATIVE
+      - UNCERTAIN
+      - HIGH_RISK
+      - INTERMEDIATE_RISK
+      - ELEVATED_RISK
+      - BORDERLINE_RISK
+      - AVERAGE_RISK
+      - LOW_RISK
+      - INCREASED_RISK
+      - NOT_INCREASED_RISK
+      - NOT_ANALYZED
+      - MINIMAL_IMPACT
+      - MAJOR_IMPACT
+      - ALTERED_DOSE
+      - CONTRAINDICATED
+    ashkenazi_jewish:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Ashkenazi Jewish Heritage
+      description: Does the patient have an Ashkenazi Jewish Heritage?
+      type: string
+      $ref: '#/components/schemas/YesNoUnknown'
+    ReportType:
+      type: string
+      enum:
+      - BASELINE_RISK
+      - MONOGENIC
+      - NDD_CNA
+      - RARE_DISEASE
+      - PGX
+      - PRS
+      - FAMILY_VARIANT_TESTING
+      - DATA_ONLY
+      - CLINICAL_RISK_ONLY
+      - CANCELED
     CaseRequisition:
       type: object
       properties:
@@ -1922,205 +1950,203 @@ components:
           - 'null'
           items:
             $ref: '#/components/schemas/RequisitionOrderDetails'
-    WaistCircumference:
-      title: Waist Circumference (cm)
-      description: must be between 50 - 200
-      type: number
-      minimum: 50
-      maximum: 200
-      example: 90
-    SortOrder:
-      description: Order in which results are sorted
-      type: string
-      enum:
-      - ascending
-      - descending
-      default: ascending
-    genetic_testing_of_father:
-      title: Genetic Testing Of The Woman's Father
-      $ref: '#/components/schemas/BreastCancerGeneticTesting'
-    breast_density_value_birads:
-      title: Breast Density Value
-      description: Value for BI-RADS
-      type: string
-      enum:
-      - ALMOST_ENTIRELY_FATTY
-      - SCATTERED_FIBROGLANDULAR DENSITY
-      - HETEROGENEOUSLY_DENSE
-      - EXTREMELY_DENSE
-    diagnosed_with_breast_cancer:
+    weight:
       $schema: https://json-schema.org/draft/2020-12/schema
-      title: Has the Patient Been Diagnosed With Breast Cancer?
-      type: boolean
-    UUID:
-      description: Python UUID
-      type: string
-      pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}
-      examples:
-      - 90cd1561-bcc4-46bc-9ba2-19bb2521a28e
-      - c2a78d62-969f-455e-8b8f-bd5f0efd9273
-    FirstOrSecondDegreeFamilyWithProstateCancer:
-      title: Has a First or Second Degree Family Member Been Diagnosed with Prostate Cancer?
-      type: string
-      $ref: '#/components/schemas/YesNoUnknown'
-    ProductDataRareDisease:
+      title: Weight (kg)
+      description: Enter to two decimal points (e.g. 95.25)
+      type: number
+      minimum: 0
+      maximum: 500
+      example: 95.25
+    ProductDataPR41016:
       type: object
+      title: Inputs for IPRS CAD
       additionalProperties: false
-      title: Inputs for Rare Disease
       required:
-      - ndd_icd10_codes
-      - secondary_findings_opt_out
+      - smoking
+      - diabetes
+      - cholesterol
+      - blood_pressure
       properties:
-        secondary_findings_opt_out:
-          title: Secondary Findings Opt Out
-          description: true for opt-out, false for opt-in
-          type: boolean
-        ndd_icd10_codes:
+        diagnosed_with_coronary_artery_disease:
+          $ref: '#/components/schemas/diagnosed_with_coronary_artery_disease'
+        smoking:
+          $ref: '#/components/schemas/smoking'
+        diabetes:
+          $ref: '#/components/schemas/diabetes'
+        cholesterol:
+          $ref: '#/components/schemas/cholesterol'
+        blood_pressure:
+          $ref: '#/components/schemas/blood_pressure'
+    Subject:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      title: Subject
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/Name'
+        contact_info:
           type: array
           items:
-            type: string
-          title: ICD10 Codes
-          description: 'For Example: Q75.3 Macrocephaly'
-        clinical_phenotypes__other:
-          type:
-          - array
-          - 'null'
-          items:
-            type: string
-          title: Clinical Phenotypes
-    age_at_breast_cancer:
-      title: Age At Which They Developed Breast Cancer?
-      description: If unknown, then their current age or the age at which they died.
-      type: integer
-      minimum: 0
-    BiologicalRelationshipWithReverse:
-      description: Relationship to an individual including reverse relationships
+            $ref: '#/components/schemas/ContactInfo'
+        demographics:
+          $ref: '#/components/schemas/Demographics'
+    RequisitionId:
       type: string
+      pattern: ^RQ-?([a-z]{3,5}-?)?\d+$
+      examples:
+      - RQ-0123456
+      - RQ-dev-0123456
+      - RQ0123456
+      - RQdev0123456
+    YesNoUnknown:
+      type: string
+      default: UNKNOWN
       enum:
-      - PARENT
-      - CHILD
-      - SIBLING
-    number_of_live_births:
-      title: Number Of Live Births
-      description: Leave blank if unknown.
-      type: integer
-      minimum: 0
-      maximum: 50
+      - 'YES'
+      - 'NO'
+      - UNKNOWN
+  parameters:
+    ClinicianName:
+      in: query
+      name: clinician_name
+      description: Name of the clinician
+      schema:
+        type: string
+    PatientName:
+      in: query
+      name: patient_name
+      description: Name of the patient
+      schema:
+        type: string
+    SortOrder:
+      in: query
+      name: sort_order
+      description: Order in which results are sorted
+      schema:
+        $ref: '#/components/schemas/SortOrder'
+    RequisitionToplineFindings:
+      in: query
+      name: result
+      description: Test result findings
+      schema:
+        type: array
+        items:
+          $ref: '#/components/schemas/RequisitionToplineFinding'
+    PaginationPageSize:
+      in: query
+      name: per_page
+      description: Number of items per page
+      schema:
+        type: integer
+        minimum: 1
+    RequisitionId:
+      in: query
+      name: requisition_id
+      description: MyOme requisition id
+      schema:
+        $ref: '#/components/schemas/RequisitionId'
+    ExternalOrderStatus:
+      in: query
+      name: status
+      description: Status of the Order
+      schema:
+        $ref: '#/components/schemas/ExternalOrderStatus'
+    PaginationPageNumber:
+      in: query
+      name: page
+      description: Page number
+      schema:
+        type: integer
+        minimum: 1
+    OrderSubmittedAt:
+      in: query
+      name: submitted_at
+      description: Date which the order was submitted
+      schema:
+        $ref: '#/components/schemas/YMDDate'
+    PatientId:
+      in: query
+      name: patient_id
+      description: ID of the patient
+      schema:
+        $ref: '#/components/schemas/IndividualId'
+    ClinicianId:
+      in: query
+      name: clinician_id
+      description: ID of the clinician
+      schema:
+        $ref: '#/components/schemas/ClinicianId'
+    SampleReceivedAt:
+      in: query
+      name: sample_received_at
+      description: Date which the sample was received
+      schema:
+        $ref: '#/components/schemas/YMDDate'
+    ExternalMRN:
+      in: query
+      name: external_mrn
+      description: Clinic's medical record number for the patient
+      schema:
+        type: string
   responses:
-    OrderGetResponse:
-      description: status of request, and result if available
+    StructuredError:
+      description: Generic structured error message
       content:
         application/json:
           schema:
             type: object
+            additionalProperties: false
+            required:
+            - title
+            - detail
             properties:
-              order_id:
-                allOf:
-                - $ref: '#/components/schemas/OrderId'
-              requisition_id:
-                allOf:
-                - $ref: '#/components/schemas/RequisitionId'
-              product_id:
-                allOf:
-                - $ref: '#/components/schemas/ProductId'
-              product_name:
+              title:
+                type: string
+              detail:
+                type: string
+              code:
                 type:
                 - string
                 - 'null'
-              report_type:
-                allOf:
-                - $ref: '#/components/schemas/ReportType'
-              status:
-                allOf:
-                - $ref: '#/components/schemas/ExternalOrderStatus'
-              submitted_at:
-                allOf:
-                - $ref: '#/components/schemas/UTCTimestamp'
-              updated_at:
-                allOf:
-                - $ref: '#/components/schemas/UTCTimestamp'
-              results:
-                description: Results files returned for return to Patients and Providers
-                type:
-                - array
-                - 'null'
-                items:
-                  properties:
-                    uri:
-                      type:
-                      - string
-                      - 'null'
-                    description:
-                      type:
-                      - string
-                      - 'null'
-                    mimetype:
-                      type:
-                      - string
-                      - 'null'
-                    reported_date:
-                      allOf:
-                      - $ref: '#/components/schemas/UTCTimestamp'
-              myome_results:
-                description: MyOmes original results files if cobranded files are returned in results
-                type:
-                - array
-                - 'null'
-                items:
-                  properties:
-                    uri:
-                      type:
-                      - string
-                      - 'null'
-                    description:
-                      type:
-                      - string
-                      - 'null'
-                    mimetype:
-                      type:
-                      - string
-                      - 'null'
-                    reported_date:
-                      allOf:
-                      - $ref: '#/components/schemas/UTCTimestamp'
-              status_detail:
-                type:
-                - object
-                - 'null'
-                properties:
-                  status_reason:
-                    type:
-                    - string
-                    - 'null'
-                    enum:
-                    - QC_FAILURE_DATA
-                    - QC_FAILURE_SEX_MISMATCH
-                  status_message:
-                    type:
-                    - string
-                    - 'null'
-              results_json:
+                description: The type of error that occurred
+              errors:
                 type:
                 - object
                 - 'null'
                 additionalProperties: true
-          example:
-          - order_id: ORtst001234
-            product_id: PR-2019
-            product_name: MyOme Personal Genome, Proactive Health, 81 Genes
-            report_type: MONOGENIC
-            requisition_id: RQtst001234
-            status: COMPLETED
-            submitted_at: '2022-09-01T16:18:03.460384+00:00'
-            updated_at: '2022-09-03T16:18:03.460384+00:00'
-            results:
-            - uri: s3://somebucket/path/to/RP-0001234.pdf
-              description: signed pdf with pii
-              mimetype: application/pdf
-              reported_date: '2022-09-03T16:18:03.460384+00:00'
-            status_detail:
-              status_reason: QC_FAILURE_DATA
-              status_message: 'Import failure: data downloaded does not match sha512'
+                description: Dictionary of field names and error messages
+              extra:
+                oneOf:
+                - type: object
+                  additionalProperties: true
+                - type: string
+          examples:
+            simple_error:
+              value:
+                detail: There was an error validating the request
+                title: Validation error
+            flat_field_errors:
+              value:
+                code: validation_error
+                detail: Validation error
+                title: Validation error
+                errors:
+                  field1: field is required
+            nested_field_errors:
+              value:
+                code: validation_error
+                detail: Validation error
+                title: Validation error
+                errors:
+                  field1: field is required
+                  field2:
+                    field3: field is invalid
+            no_field_errors:
+              value:
+                code: validation_error
+                detail: Validation error
+                title: Validation error
     RequisitionResponse:
       description: Clinician, consent(s), order(s), and subject information associated with a given requisition ID. Status updates are provided for each individual order.
       content:
@@ -2341,63 +2367,120 @@ components:
               variants:
               - value: '1'
                 display: BTD NM_007294.4(BRCA1):c.5585A>G NP_009225.1:p.His1862Arg (Pathogenic)
-    StructuredError:
-      description: Generic structured error message
+    OrderGetResponse:
+      description: status of request, and result if available
       content:
         application/json:
           schema:
             type: object
-            additionalProperties: false
-            required:
-            - title
-            - detail
             properties:
-              title:
-                type: string
-              detail:
-                type: string
-              code:
+              order_id:
+                allOf:
+                - $ref: '#/components/schemas/OrderId'
+              requisition_id:
+                allOf:
+                - $ref: '#/components/schemas/RequisitionId'
+              product_id:
+                allOf:
+                - $ref: '#/components/schemas/ProductId'
+              product_name:
                 type:
                 - string
                 - 'null'
-                description: The type of error that occurred
-              errors:
+              report_type:
+                allOf:
+                - $ref: '#/components/schemas/ReportType'
+              status:
+                allOf:
+                - $ref: '#/components/schemas/ExternalOrderStatus'
+              submitted_at:
+                allOf:
+                - $ref: '#/components/schemas/UTCTimestamp'
+              updated_at:
+                allOf:
+                - $ref: '#/components/schemas/UTCTimestamp'
+              results:
+                description: Results files returned for return to Patients and Providers
+                type:
+                - array
+                - 'null'
+                items:
+                  properties:
+                    uri:
+                      type:
+                      - string
+                      - 'null'
+                    description:
+                      type:
+                      - string
+                      - 'null'
+                    mimetype:
+                      type:
+                      - string
+                      - 'null'
+                    reported_date:
+                      allOf:
+                      - $ref: '#/components/schemas/UTCTimestamp'
+              myome_results:
+                description: MyOmes original results files if cobranded files are returned in results
+                type:
+                - array
+                - 'null'
+                items:
+                  properties:
+                    uri:
+                      type:
+                      - string
+                      - 'null'
+                    description:
+                      type:
+                      - string
+                      - 'null'
+                    mimetype:
+                      type:
+                      - string
+                      - 'null'
+                    reported_date:
+                      allOf:
+                      - $ref: '#/components/schemas/UTCTimestamp'
+              status_detail:
+                type:
+                - object
+                - 'null'
+                properties:
+                  status_reason:
+                    type:
+                    - string
+                    - 'null'
+                    enum:
+                    - QC_FAILURE_DATA
+                    - QC_FAILURE_SEX_MISMATCH
+                  status_message:
+                    type:
+                    - string
+                    - 'null'
+              results_json:
                 type:
                 - object
                 - 'null'
                 additionalProperties: true
-                description: Dictionary of field names and error messages
-              extra:
-                oneOf:
-                - type: object
-                  additionalProperties: true
-                - type: string
-          examples:
-            simple_error:
-              value:
-                detail: There was an error validating the request
-                title: Validation error
-            flat_field_errors:
-              value:
-                code: validation_error
-                detail: Validation error
-                title: Validation error
-                errors:
-                  field1: field is required
-            nested_field_errors:
-              value:
-                code: validation_error
-                detail: Validation error
-                title: Validation error
-                errors:
-                  field1: field is required
-                  field2:
-                    field3: field is invalid
-            no_field_errors:
-              value:
-                code: validation_error
-                detail: Validation error
-                title: Validation error
+          example:
+          - order_id: ORtst001234
+            product_id: PR-2019
+            product_name: MyOme Personal Genome, Proactive Health, 81 Genes
+            report_type: MONOGENIC
+            requisition_id: RQtst001234
+            status: COMPLETED
+            submitted_at: '2022-09-01T16:18:03.460384+00:00'
+            updated_at: '2022-09-03T16:18:03.460384+00:00'
+            results:
+            - uri: s3://somebucket/path/to/RP-0001234.pdf
+              description: signed pdf with pii
+              mimetype: application/pdf
+              reported_date: '2022-09-03T16:18:03.460384+00:00'
+            status_detail:
+              status_reason: QC_FAILURE_DATA
+              status_message: 'Import failure: data downloaded does not match sha512'
     RequisitionListResultsResponse:
       description: List of available requisitions and corresponding details.
       content:
@@ -2478,89 +2561,6 @@ components:
                   email: example@clinician.com
                   fax: '123456789'
                   phone: 555-555-5555
-  parameters:
-    SampleReceivedAt:
-      in: query
-      name: sample_received_at
-      description: Date which the sample was received
-      schema:
-        $ref: '#/components/schemas/YMDDate'
-    PaginationPageSize:
-      in: query
-      name: per_page
-      description: Number of items per page
-      schema:
-        type: integer
-        minimum: 1
-    ClinicianId:
-      in: query
-      name: clinician_id
-      description: ID of the clinician
-      schema:
-        $ref: '#/components/schemas/ClinicianId'
-    RequisitionToplineFindings:
-      in: query
-      name: result
-      description: Test result findings
-      schema:
-        type: array
-        items:
-          $ref: '#/components/schemas/RequisitionToplineFinding'
-    SortOrder:
-      in: query
-      name: sort_order
-      description: Order in which results are sorted
-      schema:
-        $ref: '#/components/schemas/SortOrder'
-    ClinicianName:
-      in: query
-      name: clinician_name
-      description: Name of the clinician
-      schema:
-        type: string
-    ExternalMRN:
-      in: query
-      name: external_mrn
-      description: Clinic's medical record number for the patient
-      schema:
-        type: string
-    ExternalOrderStatus:
-      in: query
-      name: status
-      description: Status of the Order
-      schema:
-        $ref: '#/components/schemas/ExternalOrderStatus'
-    PaginationPageNumber:
-      in: query
-      name: page
-      description: Page number
-      schema:
-        type: integer
-        minimum: 1
-    PatientName:
-      in: query
-      name: patient_name
-      description: Name of the patient
-      schema:
-        type: string
-    PatientId:
-      in: query
-      name: patient_id
-      description: ID of the patient
-      schema:
-        $ref: '#/components/schemas/IndividualId'
-    OrderSubmittedAt:
-      in: query
-      name: submitted_at
-      description: Date which the order was submitted
-      schema:
-        $ref: '#/components/schemas/YMDDate'
-    RequisitionId:
-      in: query
-      name: requisition_id
-      description: MyOme requisition id
-      schema:
-        $ref: '#/components/schemas/RequisitionId'
   requestBodies:
     Requisition:
       required: true

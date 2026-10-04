@@ -59,6 +59,23 @@ paths:
           $ref: '#/components/responses/StructuredError'
 components:
   schemas:
+    Product:
+      type: object
+      required:
+      - product_id
+      properties:
+        description:
+          type:
+          - string
+          - 'null'
+          description: Description of analysis product
+        name:
+          type:
+          - string
+          - 'null'
+          description: Short analysis product name
+        product_id:
+          $ref: '#/components/schemas/ProductId'
     ProductId:
       type: string
       description: A reference to an ordered product.
@@ -79,24 +96,33 @@ components:
       - myome:consent:CONTACT__RESEARCH_OPPORTUNITIES
       - myome:consent:CONTACT__TRANSACTIONAL_SMS
       - myome:consent:CONTACT__MARKETING
-    Product:
-      type: object
-      required:
-      - product_id
-      properties:
-        description:
-          type:
-          - string
-          - 'null'
-          description: Description of analysis product
-        name:
-          type:
-          - string
-          - 'null'
-          description: Short analysis product name
-        product_id:
-          $ref: '#/components/schemas/ProductId'
   responses:
+    ConsentListResponse:
+      description: List of general and product specific consents
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              additionalProperties: false
+              properties:
+                consent_uri:
+                  allOf:
+                  - $ref: '#/components/schemas/ConsentUri'
+                name:
+                  type:
+                  - string
+                  - 'null'
+                  description: Consent name
+                consent_text:
+                  type:
+                  - string
+                  - 'null'
+          example:
+          - - consent_uri: myome:consent:GENERAL-0.0.1
+              name: MyOme General Consent
+              consent_text: Example consent text
     ProductListResponse:
       description: List of products
       content:
@@ -166,32 +192,6 @@ components:
                 code: validation_error
                 detail: Validation error
                 title: Validation error
-    ConsentListResponse:
-      description: List of general and product specific consents
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              type: object
-              additionalProperties: false
-              properties:
-                consent_uri:
-                  allOf:
-                  - $ref: '#/components/schemas/ConsentUri'
-                name:
-                  type:
-                  - string
-                  - 'null'
-                  description: Consent name
-                consent_text:
-                  type:
-                  - string
-                  - 'null'
-          example:
-          - - consent_uri: myome:consent:GENERAL-0.0.1
-              name: MyOme General Consent
-              consent_text: Example consent text
   securitySchemes:
     jwt:
       type: http

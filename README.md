@@ -64,28 +64,121 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-MyOme is a CLIA-certified and CAP-accredited clinical laboratory in Menlo Park, California that builds
-a whole-genome analysis platform for inherited disease risk. A single patient sample is sequenced once
-and re-interpreted over time into clinically actionable reports — Single-Gene Risk, Medication Response
-(pharmacogenomics), and cross-ancestry Integrated Polygenic Risk Scores (iPRS) for breast cancer,
-coronary artery disease, prostate cancer and type 2 diabetes — alongside a rare-disease portfolio
-spanning genome, exome and copy-number analysis.
+MyOme is a CLIA-certified and CAP-accredited clinical laboratory in Menlo Park, California that builds a whole-genome analysis platform for inherited disease risk. A single patient sample is sequenced once and re-interpreted over time to produce clinically actionable reports: Single-Gene Risk, Medication Response (pharmacogenomics), and cross-ancestry Integrated Polygenic Risk Scores (iPRS) for breast cancer, coronary artery disease, prostate cancer and type 2 diabetes, alongside a rare-disease portfolio spanning genome, exome and copy-number analysis. MyOme publishes a partner-facing REST API (OpenAPI 3.0.2, version 2.51.0) at api.myome.com that lets institutional clients list orderable products, submit sequencing requisitions, track requisition and order status, and retrieve results including sequencing data, structured interpretation data and PDF reports. Authorization is bearer JWT issued by MyOme's Keycloak at auth.myome.com using partner-specific credentials, and a separate external sandbox instance (api.sbx.myome.com) is published for partner testing and development.
 
-MyOme publishes a partner-facing REST API (OpenAPI 3.0.2, `info.version` 2.51.0) that lets
-institutional clients list orderable products, submit sequencing requisitions, track requisition and
-order status, and retrieve results including sequencing data, structured interpretation data and PDF
-reports. Authorization is a bearer JWT issued by MyOme's Keycloak at `auth.myome.com` using
-partner-specific credentials, and an external sandbox instance is published for partner
-testing/development.
+**Areas:** Company · Genomics · Healthcare · Clinical Laboratory · Whole Genome Sequencing · Precision Medicine · Bioinformatics · Polygenic Risk Scores · Pharmacogenomics · Rare Disease · Diagnostics · Life Sciences
 
-- Website: https://myome.com/
-- API reference: https://api.myome.com/0/ui/
-- OpenAPI: https://api.myome.com/0/openapi.json
-- Production base URL: https://api.myome.com/0/
-- Sandbox base URL: https://api.sbx.myome.com/0/
-- GitHub organization: https://github.com/myome
+## MyOme on APIs.io
 
-The published OpenAPI document lists 63 paths but exposes operation detail for only 8 of them to
-anonymous callers; the remaining 55 (patient portal, provider portal, institutional administration,
-billing) appear as path keys with their operations withheld pending partner authorization. See
-`mcp/myome-tool-crosswalk.yml` for the full inventory of withheld paths.
+Everything profiled for MyOme is published on APIs.io rather than in this repository. Start at the provider page — **[apis.io/providers/myome/](https://apis.io/providers/myome/)** — or go straight to one of the APIs or properties below.
+
+### APIs (3)
+
+- [MyOme Institutional Interface API](https://apis.io/apis/myome/myome-institutional-interface-api/) — Institution onboarding and institution-scoped operations (requisitions, orders, campaigns).
+- [MyOme Requisitions and Orders API](https://apis.io/apis/myome/myome-requisitions-and-orders-api/) — Submit, list, and fetch requisitions and orders; get order results; list re-requisitionable products.
+- [MyOme Resources API](https://apis.io/apis/myome/myome-resources-api/) — Reference data—orderable products and consent types (general and product-specific).
+
+### Published properties
+
+Each property below is a page on APIs.io carrying the machine-readable artifact and what it says.
+
+#### MCP servers (1)
+
+Model Context Protocol servers that expose the API to agents.
+
+- [myome-mcp.yml](https://apis.io/servers/myome/myome-mcp-yml/)
+
+#### Overlays (1)
+
+OpenAPI overlays, including conversational phrasing for each operation.
+
+- [Myome Openapi Overlay](https://apis.io/overlays/myome/myome-openapi-overlay/)
+
+#### Security (2)
+
+Authentication, trust centre, and vulnerability disclosure.
+
+- [Myome Authentication](https://apis.io/security/myome/myome-authentication/)
+- [Myome Domain Security](https://apis.io/security/myome/myome-domain-security/)
+
+#### Plans and pricing (1)
+
+Published plans, tiers and prices.
+
+- [Myome Plans Pricing](https://apis.io/plans/myome/myome-plans-pricing/)
+
+#### Rate limits (1)
+
+Published request limits.
+
+- [Myome Rate Limits](https://apis.io/rate-limits/myome/myome-rate-limits/)
+
+## Where to find this API
+
+Links to the company's own pages. This repository publishes no copy of their specifications — the canonical document is theirs and lives at the URLs below.
+
+- [Website](https://myome.com/)
+- [Documentation](https://api.myome.com/0/ui/)
+- [API reference](https://api.myome.com/0/ui/)
+- [Sign up](https://providers.myome.com/)
+- [Support](https://myome.com/contact-us)
+- [Blog](https://myome.com/resources/blog)
+- [Compliance](https://myome.com/about-us/privacy-and-security)
+- [Terms of service](https://myome.com/legal/terms-of-service)
+- [Privacy policy](https://myome.com/legal/privacy-notice)
+- [GitHub](https://github.com/myome)
+
+## API Evangelist rating
+
+**Kin Score 41.7** — developing · rubric 0.25.0 · scored 2026-10-23
+
+| Facet | Score |
+|---|---|
+| Discoverability | 66.1 |
+| Contract quality | 50.6 |
+| Contract governance | 4.5 |
+| Operational transparency | 2.6 |
+| Developer ergonomics | 44.6 |
+| Access clarity | 35.5 |
+
+**Agent readiness 23.0** — agent-aware
+
+| Agent-readiness dimension | Result |
+|---|---|
+| Spec Presence | yes |
+| Agentic Access | — |
+| Reversibility Documented | — |
+| MCP Server | — |
+| Auth Clarity | bearer (partial credit) |
+| Idempotency | — |
+| Error Semantics | derived (partial credit) |
+| OpenAPI Examples | partial |
+| Rate Limit Signal | documented (partial credit) |
+| Event Surface Described | — |
+| Agent Skills | derived (partial credit) |
+| Well Known Catalog | — |
+| Consent Identity | — |
+| Agent Card | — |
+| Dry Run Mode | — |
+| Delegated Identity | — |
+| Protected Resource Metadata | — |
+| Dynamic Client Registration | — |
+| Agentic Commerce | — |
+| Pagination Ratio | — |
+| Operation Distinctiveness | distinct |
+
+**Regulatory alignment 39.1** — Health
+
+The rubric is published at [github.com/api-evangelist/kin-score](https://github.com/api-evangelist/kin-score). The per-check breakdown behind these numbers — which checks were earned, partial or missed — along with score history and how this provider compares to its peers, is available at [apis.io/providers/myome/](https://apis.io/providers/myome/).
+
+## How this profile is made
+
+API Evangelist profiles a company's public API surface the way a developer would find it: the website, developer portal and documentation, the specifications it publishes, its public repositories, and its pricing, status and changelog pages. From that it derives the properties above — contracts split per API, workflows, schemas, collections, governance rules, plans and rate limits — and scores them against the published [Kin Score rubric](https://github.com/api-evangelist/kin-score).
+
+The artifacts are published on [APIs.io](https://apis.io), not in this repository. This repository is the public record for MyOme: the place to say something is wrong, missing or out of date, and to ask for a re-score or a removal.
+
+## Open an issue
+
+- **Something about this listing** — a wrong description, a missing API, a stale artifact or a question about the rating: [open an issue on this repository](https://github.com/api-evangelist/myome/issues/new).
+- **A new API, or one that is not in the catalog yet** — [submit it on APIs.io](https://apis.io/add/).
+- **Anything else** — [the APIs.io inbox](https://github.com/api-search/inbox/issues/new) or [info@apievangelist.com](mailto:info@apievangelist.com).
